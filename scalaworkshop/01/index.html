@@ -344,6 +344,20 @@ git fetch
 git checkout scala-workshop-01</code></pre>
 					</section>
 					<section>
+						Finding the Code<br><br>
+						<small>chart-web/app/com/lucidchart/authentication/jwt/JwtConsumerManager.scala</small>
+						<pre><code class="scala">package com.lucidchart.authentication.jwt
+// ...
+class JwtConsumerManager(...) {
+  // ...
+  def registerAtlassianConnectConsumer(...) {
+    // ...
+    // L31
+    services.user.createExternalApp(clientKey, None, consumer.id)
+  }
+}</code></pre>
+					</section>
+					<section>
 						<h3>Verification</h3>
 						Chart-Web:
 						<pre><code></code></pre>
