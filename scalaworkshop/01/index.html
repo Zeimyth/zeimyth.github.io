@@ -322,7 +322,7 @@ trait CustomRequestModifiers extends AuthPassingModifiers {
 									<li class="fragment">Return response</li>
 								</ul>
 							</li>
-							<li class="fragment">Add endpoint to routes</li>
+							<li class="fragment">Add endpoint to routes and ACLs</li>
 						</ol>
 					</section>
 					<section>
@@ -358,12 +358,55 @@ class JwtConsumerManager(...) {
 }</code></pre>
 					</section>
 					<section>
-						<h3>Verification</h3>
-						Chart-Web:
-						<pre><code></code></pre>
-						User-Service:
-						<pre><code></code></pre>
+						Finding the Code<br><br>
+						<small>user-service/app/com/lucidchart/services/<br>user/oauth/controllers/CreateExternalAppApiController.scala</small><br><br>
+						<small>user-service/conf/oauth.routes</small>
 					</section>
+					<section>
+						<h3>Tips and Tricks</h3>
+						<ul>
+							<li>Deprecate old endpoint by renaming "main" to "legacy"</li>
+							<li>Body case class based on com.lucidchart.user.model.ExternalApp</li>
+							<li>Reference UpdateTokenApiController for body parsing help</li>
+							<li>Permissions: UpdateTokenApiControllre shows how to limit access to only Lucid Support or system user</li>
+							<li>Permissions: PatchAccountMetadataApiController shows how to limit access to Lucid Support, system user, or account admin</li>
+						</ul>
+					</section>
+					<section>
+						<h3>More Tips and Tricks</h3>
+						<ul>
+							<li>Reference old CreateExternalAppController code for database calls</li>
+							<li>Reference AppleReceiptController.post() for how to send Created response</li>
+							<li>New url: POST /externalApps</li>
+							<li>Link already exists (verify: Links.scala in user-link has ExternalAppsLink)</li>
+							<li>Bootstrapper already set up (verify: Bootstrap.scala in user-model has externalApps)</li>
+							<li>Add method to existing ExternalAppsClient</li>
+						</ul>
+					</section>
+					<section>
+						<h3>More Tips and Tricks</h3>
+						<ul>
+							<li>Reference PaymentsClient (PaymentClient.scala) for how to add JsonPostClient</li>
+							<li>To automatically make a JsonPostClient parse a Link, use a LocationLinkParser</li>
+							<li>Call your new endpoint by getting the URL from a bootstrapper and using a system user request modifier</li>
+							<li>Recommended to inject the bootstrapper</li>
+							<li>com.lucidchart.services.UserBootstrap, userBootstrapper()</li>
+						</ul>
+					</section>
+					<section>
+						<h3>More Tips and Tricks</h3>
+						<ul>
+							<li>Get access to all clients by importing com.lucidchart.user.client.Clients._</li>
+							<li>Mixin com.lucidchart.restclient.HttpRequestModifiers to get access to systemUserRequestModifier()</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<h3>Verification</h3>
+					Chart-Web:
+					<pre><code class="bash">$ curl -X POST http://localhost:9014/scalaworkshop</code></pre>
+					User-Service:
+					<pre><code class="bash">$ sbt "user-service/test-only *.CreateExternalAppApiControllerTest"</code></pre>
 				</section>
 			</div>
 		</div>
