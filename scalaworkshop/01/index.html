@@ -1,0 +1,375 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Scala Workshop - Migrating Endpoints to New User Rest Client</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/league.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>Migrating Endpoints to the New User Client</h3>
+					Lucid Scala Workshop 01/17
+				</section>
+				<section>
+					<h3>Old? New?</h3>
+					<pre><code class="scala">Services.user.setOauthClient(
+  provider,
+  clientId,
+  access_token = Some(aToken),
+  refresh_token = rToken,
+  data = data
+)</code></pre>
+					vs
+					<pre><code class="scala">userBootstrap.userBootstrapper.oauthClient(provider, clientId)
+  .put(
+    OAuthClientModify(
+      accessToken = Some(Json.obj("access_token" -> aToken)),
+      refreshToken = rToken,
+      data = data
+    )
+  )</code></pre>
+				</section>
+				<section>
+					<section>
+						<h3>What was wrong with the old User Client?</h3>
+					</section>
+					<section>
+						No authentication on most requests<br>
+						No access to HTTP body or headers
+						<pre><code>def getUserOauthClient(
+  provider: OAuthProvider.Value,
+  userId: Long,
+  product: Products.Value,
+  extraHeaders: Map[String, String] = Map()
+): Option[OauthClientRecord]</code></pre>
+					</section>
+					<section>
+						Exception-based logic made custom error behavior difficult
+						<pre><code class="scala">def handleResponse(response: HttpResponse) = {
+  try {
+    parse(handleXmlResponse(response))
+  } catch {
+    case e: LucidClientException =>
+      val status = response.getStatusLine.getStatusCode
+      // failureValues: Map[Int, A]
+      if (failureValues.contains(status)) {
+        // Headers and body aren't exposed!
+        failureValues(status)
+      } else {
+        throw e
+      }
+  }
+}</code></pre>
+					</section>
+					<section>
+						Encouraged bad server practices
+						<pre><code class="http">HTTP/1.1 200 OK
+
+<user-service>
+    <status>failure</status>
+</user-service></code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>What the new User Client strives to be</h3>
+					</section>
+					<section>
+						A thinner abstraction over HTTP<br><br>
+						All requests return an Apache HTTP response wrapped in a <code>com.lucidchart.restclient.Response</code> object.
+					</section>
+					<section>
+						Unopinionated about how to handle errors<br><br>
+						All HTTP errors are handled outside of the client.
+						<pre><code class="scala">userUri.get.okEntity // Option[User]</code></pre>
+						instead of
+						<pre><code class="scala">Services.user.getUser(userId) // UserRecord or exeption</code></pre>
+					</section>
+					<section>
+						A hypermedia client<br><br>
+						Everything starts with a bootstrapper or links. Except for users or accounts, URLs should be requested instead of built.
+						<pre><code class="scala">for {
+  user <- userBootstrap.userUri(userId).get.okEntity
+  license <- user.currentProduct.license.get.okEntity
+} yield {
+  // ...
+}</code></pre>
+					</section>
+				</section>
+				<section>
+					<h3>A shallow dive into the inner workings of the new User Client</h3>
+				</section>
+				<section>
+					<section>
+						<h3>Links</h3>
+						All URLs are represented as a <code>com.lucidchart.link.Link</code>.
+						<pre><code class="scala">trait Link {
+  val url: String
+  // Other useful methods
+}</code></pre>
+					</section>
+					<section>
+						Links encode the "type" of the url.
+						<pre><code class="scala">case class UserLinks(
+  metadata: UserMetadataLink,
+  groups: GroupsLink,
+  oAuth: UserOAuth,
+  roles: UserRolesLink,
+  permissions: UserPermissionsLink,
+  activities: ActivitiesLink
+)</code></pre>
+					</section>
+					<section>
+						Links support query string parameters, but not bodies.
+						<pre><code class="scala">val metadata: UserMetadataLink = ???
+val boxMetadataUri: UserMetadataLink = metadata.withQuery(
+  Seq(
+    "product" -> product.toString,
+    "name" -> UserMetadataKeys.BoxFolderId.name
+  )
+)</code></pre>
+					</section>
+					<section>
+						Links come from bootstrappers or from the result of a previous request.
+						<pre><code class="scala">val userUri: UserLink = userBootstrap.userUri(userId)
+
+userUri.get.okEntity.map { user =>
+  val metadata: UserMetadataLink = user.links.metadata
+}</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Clients</h3>
+						Clients all responsible for executing all HTTP methods for a specific type of link.
+						<pre><code class="scala">case class UsersClient(url: String)
+  extends JsonGetClient[Seq[User]]
+
+implicit def usersClient(link: UsersLink) =
+  UsersClient(link.url)
+
+// As long as the implicit is in scope,
+// these two lines are equivalent:
+usersClient(userUri).get
+userUri.get</code></pre>
+					</section>
+					<section>
+						Clients can mixin different HTTP methods.
+						<pre><code class="scala">case class UsersClient(url: String)
+  extends JsonGetClient[Seq[User]]
+  with JsonPatchClient[PatchUser, Unit]
+  with DeleteClient</code></pre>
+					</section>
+					<section>
+						Clients will build the entire HTTP request, including the body.
+						<pre><code class="scala">case class OAuthClientClient(url: FastURIStub)
+  extends JsonPutClient[OAuthClientModify]
+
+userBootstrap.userBootstrapper.oauthClient(provider, clientId)
+  .put(
+    OAuthClientModify(
+      accessToken = Some(Json.obj("access_token" -> aToken)),
+      refreshToken = rToken,
+      data = data
+    )
+  )</code></pre>
+					</section>
+					<section>
+						Implicit conversions for clients are all stored together on the Clients object.
+						<pre><code class="scala">package com.lucidchart.user.client
+
+object Clients {
+
+  implicit def usersClient(link: UsersLink) =
+    UsersClient(link.url)
+}
+
+// In another file
+import com.lucidchart.user.client.Clients._
+
+userUri.get</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Implicits of the User Client</h3>
+						<pre><code class="scala">trait GetClient[RESOURCE] extends Client {
+
+  def get(
+      implicit client: CloseableHttpClient,
+      modifier: HttpRequestModifier
+  ): Response[RESOURCE, Unit.type] = {
+    execute(getRequest())(parseGet)
+  }
+}</code></pre>
+					</section>
+					<section>
+						CloseableHttpClient<br><br>
+						Apache HTTP client that actually sends and receives data through a socket. Controls timeouts.
+						<pre><code class="scala">object Services {
+
+  val userServiceHttpClient = HttpClients.custom()
+    .setDefaultRequestConfig(
+      RequestConfig.custom()
+        .setConnectTimeout(userTimeouts.connectTimeout)
+        .setSocketTimeout(userTimeouts.socketTimeout)
+        .build()
+    )
+    .build()
+}</code></pre>
+					</section>
+					<section>
+						HttpRequestModifier<br><br>
+						Adds headers to the HTTP request. Most commonly handles authentication, content type, flowId, and caching.
+						<pre><code class="scala">package com.lucidchart.restclient
+trait HttpRequestModifier extends (HttpUriRequest => HttpUriRequest)
+
+package com.lucidchart.services // Chart-Web
+trait CustomRequestModifiers extends AuthPassingModifiers {
+
+  implicit def userAuthRequestModifierCustomRequest(
+      implicit request: CustomRequest
+  ): HttpRequestModifier = {
+    HttpRequestModifier({ r: HttpUriRequest =>
+      // Pass the lucidauth token in the Authorization header
+      getAuthorization(request).foreach { auth =>
+        r.addHeader(HeaderNames.AUTHORIZATION, auth)
+      }
+      r
+    }) andThen defaultModifier
+  }
+}</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Handling responses</h3>
+						Basic case: Treat your expected response as "correct" and any other response as an error.
+						<pre><code class="scala">val maybeUser: Option[User] = userUri.get.okEntity
+
+// Also .createdEntity, .noContent, .notFound, etc.
+// See com.lucidchart.restclient.Response</code></pre>
+					</section>
+					<section>
+						Intermediate case: Pattern match to allow useful handling of errors.
+						<pre><code class="scala">userUri.get match {
+  case restclient.Ok(_, _, user) => doSomethingUsefulWith(user)
+  case r => logger.error(s"UserService failed with ${r.status}")
+}</code></pre>
+					</section>
+					<section>
+						Advanced case: Pattern match to allow fine-tuned handling of various responses.
+						<pre><code class="scala">openIdLink.get match {
+  case restclient.Ok(_, headers, _) =>
+    getUserIdFromLocationHeader(headers)
+      .map(checkIfLinkedToMicrosoft)
+      .getOrElse(linkUserToMicrosoftAccount(microsoftId)
+  case _: restclient.NotFound =>
+    linkUserToMicrosoftAccount(microsoftId)
+  case r =>
+    logger.error(s"${r.status} response from user service")
+    errorOccurred
+}</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Workshop Scenario</h3>
+						Creating External Apps
+						<ul>
+							<li class="fragment">A link between an OAuth consumer and a Lucidchart account</li>
+							<li class="fragment">Allows a team to grant a third party access to their account</li>
+							<li class="fragment">e.g. Confluence</li>
+						</ul>
+					</section>
+					<section>
+						What is Confluence Cloud?
+						<ul>
+							<li>Confluence instance hosted on an Atlassian-owned server</li>
+							<li>Can use our plugin to autoprovision a Lucidchart userfor any Confluence user</li>
+							<li>Consumer and External App created when a user installs our Confluence Cloud add-on into their Confluence instance</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Steps to Implement</h3>
+						<ol>
+							<li class="fragment">Find and deprecate old code</li>
+							<li class="fragment">Write new controller code
+								<ul>
+									<li class="fragment">Parse body</li>
+									<li class="fragment">Check permissions</li>
+									<li class="fragment">Modify database</li>
+									<li class="fragment">Return response</li>
+								</ul>
+							</li>
+							<li class="fragment">Add endpoint to routes</li>
+						</ol>
+					</section>
+					<section>
+						<h3>Steps to Implement (Cont.)</h3>
+						<ol start="4">
+							<li>Create Link (if necessary)</li>
+							<li class="fragment">Add endpoint to bootstrapper (if necessary)</li>
+							<li class="fragment">Create new Client or add method to existing one</li>
+							<li class="fragment">Replace code that called old client</li>
+						</ol>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Where to Start</h3>
+						<pre><code class="bash">cd /var/lucid/main
+git stash save -u "Interrupting work for Scala workshop!"
+git fetch
+git checkout scala-workshop-01</code></pre>
+					</section>
+					<section>
+						<h3>Verification</h3>
+						Chart-Web:
+						<pre><code></code></pre>
+						User-Service:
+						<pre><code></code></pre>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
