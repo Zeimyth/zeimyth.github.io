@@ -1,0 +1,509 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Scala Workshop - Mastering Implicits</title>
+
+		<link rel="stylesheet" href="../css/reveal.css">
+		<link rel="stylesheet" href="../css/theme/league.css">
+		<style>
+			.code-highlight {
+				color: #bbe;
+			}
+
+			code.code-small {
+				font-size: 12pt;
+				line-height: 14pt;
+			}
+		</style>
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h3>Mastering Implicits</h3>
+					<p>Lucid Scala Workshop 02/02</p>
+					<a href="http://zeimyth.github.io/scalaworkshop/02">http://zeimyth.github.io/scalaworkshop/02</a>
+				</section>
+				<section>
+					<section>
+						<h3>What is an implicit?</h3>
+						<pre><code class="scala code-small">// Seen this before?
+Map("key" -> "value")</code></pre>
+
+						<pre class="fragment"><code class="scala code-small">// Compiler output after implicits and desugaring:
+Map.apply(any2ArrowAssoc("key").->("value"))
+
+// Made possible because of:
+class ArrowAssoc[A](x: A) {
+  def -> [B](y: B): Tuple2[A, B] = Tuple2(x, y)
+}
+
+implicit def any2ArrowAssoc[A](x: A) = new ArrowAssoc(x)</code></pre>
+					</section>
+					<section>
+						<h3>What is an implicit?</h3>
+						<ul>
+							<li>Compiler uses a variable or function marked "implicit" without you having to do it yourself</li>
+							<li>Syntactic sugar</li>
+							<li>Not magic!</li>
+							<li>Handled at compile time; no runtime performance penalty</li>
+						</ul>
+					</section>
+					<section>
+						<h3>What can be implicit?</h3>
+						<ul>
+							<li><strong class="code-highlight">val</strong>s and <strong class="code-highlight">var</strong>s</li>
+							<li><strong class="code-highlight">def</strong>s</li>
+							<li><strong class="code-highlight">class</strong>es</li>
+							<li><strong class="code-highlight">object</strong>s</li>
+							<li>Function parameters</li>
+						</ul>
+						<p>Basically... Anything!</p>
+					</section>
+					<section>
+						<h3>Where can implicits be used?</h3>
+						<ul>
+							<li>
+								Implicit parameters
+								<ul>
+									<li>Useful for "context" variables</li>
+								</ul>
+							</li>
+							<li>
+								Implicit conversions (view)
+								<ul>
+									<li>Triggered when a given parameter doesn't match the expected argument type</li>
+								</ul>
+							</li>
+							<li>
+								Implicit conversions (one-off method calls)
+								<ul>
+									<li>Triggered by missing variables or functions</li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<h3>How can I use an implicit?</h3>
+					<p>Implicits must be explicitly denoted as <strong class="code-highlight">implicit</strong>.</p>
+					<pre><code class="scala code-small">implicit val magicNumber = 42
+
+implicit def countIt(a: Int) = "The number is " + a</code></pre>
+					<p>The last parameter list in a function may be marked <strong class="code-highlight">implicit</strong>.</p>
+					<pre><code class="scala code-small">def myFunc(x: Int)(implicit y: String) = ???</code></pre>
+				</section>
+				<section>
+					<section>
+						<h3>Where should I use implicits?</h3>
+					</section>
+					<section>
+						<h3>To enrich external APIs</h3>
+						<pre><code class="scala code-small">val date = new java.util.Date()
+date.asInstanceOf[Boolean] // java.lang.ClassCastException
+
+implicit class AsOptInstance[A](val a: A) extends AnyVal {
+
+  def asOptInstanceOf[B : ClassTag] = a match {
+    case b: B => Some(b)
+    case _ => None
+  }
+}
+
+date.asOptInstanceOf[Boolean] // None</code></pre>
+					</section>
+					<section>
+						<h3>To reduce boilerplate for "context" values</h3>
+						<pre><code class="scala code-small">import scala.concurrent.ExecutionContext
+val ctx: ExecutionContext = ???
+Future {
+  doSomething()
+}(ctx)
+
+implicit val ctx: ExecutionContext = ???
+Future {
+  doSomething()
+}</code></pre>
+					</section>
+					<section>
+						<h3>Type Classes</h3>
+						<pre><code class="scala code-small">trait Jsonable[T] {
+  def serialize(t: T): Json
+}
+
+object Jsonable{
+  implicit object StringJsonable extends Jsonable[String] {
+    def serialize(t: String) = Json.Str(t)
+  }
+  implicit object DoubleJsonable extends Jsonable[Double] {
+    def serialize(t: Double) = Json.Num(t)
+  }
+}
+
+def convertToJson[T](x: T)(implicit converter: Jsonable[T]): Json = {
+  converter.serialize(x)
+}
+
+convertToJson("hello") 
+convertToJson(123.56)
+
+convertToJson(new java.io.File(".")) // Compile error: Could not find implicit</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Where should I avoid using implicits?</h3>
+					</section>
+					<section>
+						<h3>Common or ambiguous types</h3>
+						<ul>
+							<li><strong class="code-highlight">Int</strong>, <strong class="code-highlight">Boolean</strong>, <strong class="code-highlight">String</strong>, <strong class="code-highlight">Any</strong>, etc.</li>
+							<li>Specialized, unique types to avoid collisions</li>
+							<li>Specific types to avoid resolving with the wrong implicit</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Don't nest implicits</h3>
+						<pre><code class="scala code-small">trait UserRestClientHelpers {
+
+  implicit def userAuthRequestModifier(implicit request: RequestHeader) = {
+    HttpRequestModifier { r =>
+      getAuthorization(request).foreach { auth =>
+        r.addHeader(HeaderNames.AUTHORIZATION, auth)
+      }
+      r
+    } andThen defaultModifier
+  }
+}</code></pre>
+					</section>
+					<section>
+						<h3>Not an excuse for bad style</h3>
+						<p>Requiring a huge object (like <strong class="code-highlight">CustomRequest</strong>) and only using one property on it is a code smell in normal coding, and every bit as bad with implicits.</p>
+						<p>Implicits are not an excuse to make code terse to the point of obscurity.</p>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Rules for implicit resolution</h3>
+						<p>Two levels of priority:</p>
+						<ol>
+							<li>Values available by name in the current scope</li>
+							<li>Values available on companion objects</li>
+						</ol>
+						<p class="fragment">#1 will always take priority over #2, but two implicits in the best available priority will cause compiler errors due to ambiguity.</p>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>High priority: Base Example</h3>
+						<pre><code class="scala code-small">def foo(a: Int) = println(a)
+
+def run() = {
+  val useme = 5
+  foo(useme) // 5
+}</code></pre>
+					</section>
+					<section>
+						<h3>Implicit in same scope</h3>
+						<pre><code class="scala code-small">def foo(implicit a: Int) = println(a)
+
+def run() = {
+  implicit val useme = 5
+  foo // 5
+}</code></pre>
+					</section>
+					<section>
+						<h3>Implicit in outer scope</h3>
+						<pre><code class="scala code-small">implicit val useme = 5
+  
+def foo(implicit a: Int) = println(a)
+
+def run() = {
+  foo // 5
+}</code></pre>
+					</section>
+					<section>
+						<h3>Implicit available via import</h3>
+						<pre><code class="scala code-small">object Helper {
+  implicit def useme(a: Int): String = a + ""
+}
+import Helper.useme
+// Or
+// implict Helper._
+
+def foo(implicit a: String) = println(a)
+
+def run() = {
+  foo(5) // 5
+}</code></pre>
+					</section>
+					<section>
+						<h3>Implicit available via inheritance</h3>
+						<pre><code class="scala code-small">trait A {
+  implicit val favoriteNumber = 42
+}
+
+class B extends A {
+
+  def printFavoriteNumber(implicit number: Int) = {
+    println("My favorite numer is " + number)
+  }
+
+  printFavoriteNumber
+}
+
+new B() // "My favorite number is 42"</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Low priority: Implicit on "source" companion object</h3>
+						<pre><code class="scala code-small">case class SuperInteger(value: Int)
+object SuperInteger {
+  implicit def toInt(si: SuperInteger): Int = si.value
+}
+
+def foo(a: Int) = println(a)
+
+val si = SuperInteger(5)
+foo(si) // 5</code></pre>
+					</section>
+					<section>
+						<h3>Implicit on "target" companion object</h3>
+						<pre><code class="scala code-small">case class SuperInteger(value: Int)
+case class SuperString(value: String)
+object SuperString {
+  implicit def fromSI(si: SuperInteger): SuperString = SuperString(si.value.toString)
+}
+
+def foo(a: SuperString) = println(a)
+
+val si = SuperInteger(5)
+foo(si) // SuperString(5)</code></pre>
+					</section>
+					<section>
+						<h3>Implicit on companion object of inner type</h3>
+						<pre><code class="scala code-small">case class SuperInteger(value: Int)
+object SuperInteger {
+  implicit val ord = new Ordering[SuperInteger] {
+    def compare(x: SuperInteger, y: SuperInteger) = x.value compare y.value
+  }
+}
+
+val unsorted: Seq[SuperInteger] = Seq(
+  SuperInteger(5),
+  SuperInteger(3),
+  SuperInteger(-11),
+  SuperInteger(50)
+)
+unsorted.sorted</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Limitiations</h3>
+					</section>
+					<section>
+						<h3>Implicit Chaining is not allowed</h3>
+						<pre><code class="scala code-small">class A {
+  def foo = 5
+}
+implicit class B(inner: A) {
+  def bar: Int = inner.foo
+}
+implicit class C(inner: B) {
+  def baz: Int = inner.bar
+}
+
+val a = new A
+a.foo // 5
+a.bar // 5
+a.baz // error: value baz is not a member of A
+new C(new B(a)).baz // 5</code></pre>
+					</section>
+					<section>
+						<h3>Watch out for ambiguity issues</h3>
+						<pre><code class="scala code-small">object Helper {
+  implicit def useme(a: Int): String = "Using imported def"
+}
+import Helper.useme
+
+implicit def usemeinstead(a: Int): String = "Using local def"
+def foo(implicit a: String) = println(a)
+
+def run() = {
+  foo(5) // Compile error; ambiguous implicits
+}</code></pre>
+					</section>
+					<section>
+						<h3>Watch out for variable shadowing</h3>
+						<pre><code class="scala code-small">implicit val useme = 5
+  
+def foo(implicit a: Int) = println(a)
+
+def run() = {
+  val useme = 10
+  foo // Compiler error
+}</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Debugging tips</h3>
+						<ul>
+							<li>Compiler not finding an implicit? Try using it explicitly to troubleshoot</li>
+							<li>IntelliJ highlights implicit usage</li>
+							<li>Review resolution rules to help find implicit definitions</li>
+							<li>Run <strong class="code-highlight">scalac</strong> with <strong class="code-highlight">-Xprint:typer</strong> (less useful for large codebases)</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Exercise</h3>
+						<p>Find user with max ID</p>
+						<pre><code class="scala code-small">// Hint: An Ordered[A] has comparison operators
+// http://www.scala-lang.org/api/2.11.7/#scala.math.Ordered
+
+case class User(id: Long, name: String, email: String)
+
+def findMax[T](xs: List[T]): T = {
+  xs match {
+    case Nil => throw new Exception("Empty list!")
+    case x :: Nil => x
+    case x :: tail =>
+      val maxFromTail = findMax(tail)
+      if (x > maxFromTail) x else maxFromTail
+  }
+}
+
+val users = List(
+  User(1, "Bob", "bob@lucidchart.com"),
+  User(509, "Ben", "ben@lucidchart.com"),
+  User(31, "Becky", "becky@lucidchart.com")
+)
+
+findMax(users)</code></pre>
+					</section>
+					<section>
+						<h3>Solution</h3>
+						<pre><code class="scala code-small">// Hint: An Ordered[A] has comparison operators
+// http://www.scala-lang.org/api/2.11.7/#scala.math.Ordered
+
+case class User(id: Long, name: String, email: String)
+
+object User {
+  implicit def toOrdered(user: User): Ordered[User] = new Ordered[User] {
+    def compare(other: User): Int = user.id compare other.id
+  }
+}
+
+def findMax[T](xs: List[T])(implicit ev: T => Ordered[T]): T = {
+// Note: Equivalent to `def findMax[T <% Ordered](xs: List[T]): T = {`
+  xs match {
+    case Nil => throw new Exception("Empty list!")
+    case x :: Nil => x
+    case x :: tail =>
+      val maxFromTail = findMax(tail)
+      if (x > maxFromTail) x else maxFromTail
+  }
+}
+
+val users = List(
+  User(1, "Bob", "bob@lucidchart.com"),
+  User(509, "Ben", "ben@lucidchart.com"),
+  User(31, "Becky", "becky@lucidchart.com")
+)
+
+findMax(users)</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Exercise</h3>
+						<p>Pull an implicit into the normal variable scope</p>
+						<pre><code class="scala code-small">// Hint: Functions can return their own parameters
+
+object AwesomeImplicits {
+  // Do not reference this by name in the rest of the code!
+  implicit val c: Long = 0x5f3759df
+}
+import AwesomeImplicits._
+
+def doSomethingAwesome(a: Int, b: String)(implicit c: Long) = {
+  println("Awesome!")
+}
+
+def doSomethingElseAwesome(a: Int, b: String, c: Long) = {
+  doSomethingAwesome(a, b)(c)
+}
+
+val a = 42
+val b = "Hello, World!"
+
+doSomethingAwesome(a, b) // Runs
+doSomethingElseAwesome(a, b, ???) // Make this one compile</code></pre>
+					</section>
+					<section>
+						<h3>Solution</h3>
+						<pre><code class="scala code-small">// Hint: Functions can return their own parameters
+
+object AwesomeImplicits {
+  implicit val c: Long = 0x5f3759df
+}
+import AwesomeImplicits._
+
+def doSomethingAwesome(a: Int, b: String)(implicit c: Long) = {
+  println("Awesome!")
+}
+
+def doSomethingElseAwesome(a: Int, b: String, c: Long) = {
+  doSomethingAwesome(a, b)(c)
+}
+
+def getImplicit(implicit x: Long): Long = x
+
+val a = 42
+val b = "Hello, World!"
+
+doSomethingAwesome(a, b) // Runs
+doSomethingAwesome(a, b, getImplicit) // Also runs
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="../lib/js/head.min.js"></script>
+		<script src="../js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: '../plugin/markdown/marked.js' },
+					{ src: '../plugin/markdown/markdown.js' },
+					{ src: '../plugin/notes/notes.js', async: true },
+					{ src: '../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
