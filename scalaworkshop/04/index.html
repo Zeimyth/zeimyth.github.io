@@ -1,0 +1,519 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Scala Workshop - Working with Json in Scala</title>
+
+        <link rel="stylesheet" href="../css/reveal.css">
+        <link rel="stylesheet" href="../css/theme/league.css">
+        <style>
+            .code-highlight {
+                color: #bbe;
+            }
+
+            code.code-small {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            .word-highlight {
+                color: lemonchiffon;
+            }
+        </style>
+
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="../lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h3>Working with Json in Scala</h3>
+                    <p>Lucid Scala Workshop 03/09</p>
+                    <a href="http://zeimyth.github.io/scalaworkshop/03">http://zeimyth.github.io/scalaworkshop/04</a>
+                </section>
+                <section>
+                    <section>
+                        <h3>JSON Refresher</h3>
+                        <ul>
+                            <li>Stands for <strong class="word-highlight">J</strong>ava<strong class="word-highlight">S</strong>cript <strong class="word-highlight">O</strong>bject <strong class="word-highlight">N</strong>otation</li>
+                            <li>Textual representation of hierarchical data</li>
+                            <li>
+                                Utilizes two types of data structures:
+                                <ol>
+                                    <li>Key-value pairs (object/map/dictionary/set)</li>
+                                    <li>Ordered list of values (array/sequence)</li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>What does it look like?</h3>
+                        <pre><code class="json code-small">{
+    "name": "Adventurer Al",
+    "class": {
+        "name": "Wizard",
+        "level": 4
+    },
+    "health": 60,
+    "inventory": [
+        {
+            "name": "Staff of Magic",
+            "weight": 10,
+            "value": 1900
+        },
+        {
+            "name": "Ring of Invisibility",
+            "weight": 0,
+            "value": 37300
+        }
+    ]
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>How is it used?</h3>
+                        <ul>
+                            <li>
+                                Data storage or transfer format
+                                <ul>
+                                    <li>Anywhere a string can be used (e.g. config, HTTP)</li>
+                                </ul>
+                            </li>
+                            <li>Language-independent (works best with JavaScript)</li>
+                            <li>Deserialize into native language data structures</li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <h3>Introducing Play's JSON Library</h3>
+                    <ul>
+                        <li>Parses raw JSON into intermediate Scala representation</li>
+                        <li>Provides type safety, inspection, modification</li>
+                        <li>Converts to and from custom Scala values (including case classes)</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>PSA: How to follow along</h3>
+                    <span>Open a Scala REPL with Play dependencies</span>
+                    <pre><code class="bash code-small">cd /var/lucid/main && sbt util/console</code></pre>
+                    <span>Import JSON library</span>
+                    <pre><code class="nohighlight code-small hljs">scala> import play.api.libs.json._</code></pre>
+                    <span>Profit!</span>
+                    <pre><code class="nohighlight code-small hljs">scala> Json.obj("hello" -> "world")
+res0: play.api.libs.json.JsObject = {"hello":"world"}
+</code></pre>
+                </section>
+                <section>
+                    <section>
+                        <h3>Working with raw JSON</h3>
+                        <ul>
+                            <li>Raw JSON can only be manipulated as a string</li>
+                            <li>
+                                Must be parsed into library's representation
+                                <ul>
+                                    <li>Can throw parsing errors on malformed JSON</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <pre><code class="nohighlight code-small hljs">scala> Json.parse("{\"key\":\"value\"}")
+res0: play.api.libs.json.JsValue = {"key":"value"}
+
+scala> Json.parse("not a valid json string")
+com.fasterxml.jackson.core.JsonParseException:
+ Unrecognized token 'not': was expecting 'null', 'true', 'false' or NaN
+ at [Source: not a valid json string; line: 1, column: 4]</code></pre>
+                    </section>
+                    <section>
+                        <h3>Serializing back to JSON</h3>
+                        <pre><code class="nohighlight code-small hljs">scala> Json.obj("key" -> "value").toString
+res2: String = {"key":"value"}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Introducting JsValue</h3>
+                        <ul>
+                            <li>Funtional and typestafe intermediate JSON form</li>
+                            <li>
+                                Can be obtained from:
+                                <ul>
+                                    <li>Parsing a raw JSON string</li>
+                                    <li>Using a <strong class="code-highlight">Writes</strong> on a Scala value</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Can be converted into:
+                                <ul>
+                                    <li>A raw JSON string using <strong class="code-highlight">.toString</strong></li>
+                                    <li>A Scala value using a<strong class="code-highlight">Reads</strong></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>JsValue is a <span class="code-highlight">trait</span></h3>
+                        <img src="https://www.lucidchart.com/publicSegments/view/acfa9dd4-1b2a-4cd5-8f40-8c65546dafd4/image.png" />
+                    </section>
+                    <section>
+                        <h3>Manually reading values using <span class="code-highlight">\</span> and  <span class="code-highlight">\\</span></h3>
+                        <ul>
+                            <li>
+                                Returns a <strong class="code-highlight">JsLookupResult</strong>
+                                <ul><li>Comparable to <strong class="code-highlight">Option</strong></li></ul>
+                            </li>
+                        </ul>
+                        <pre><code class="nohighlight code-small hljs">scala> val wizardJson = Json.parse("{\"name\":\"Adventurer Al\",\"class\":{\"name\":\"Wizard\",\"level\":4},\"health\":60,\"inventory\":[{\"name\":\"Staff of Magic\",\"weight\":10,\"value\":1900},{\"name\":\"Ring of Invisibility\",\"weight\":0,\"value\":37300}]}")
+wizardJson: play.api.libs.json.JsValue = {"name":"Adventurer Al","class":{"name":"Wizard","level":4},"health":60,"inventory":[{"name":"Staff of Magic","weight":10,"value":1900},{"name":"Ring of Invisibility","weight":0,"value":37300}]}
+
+// JsLookupResult
+scala> wizardJson \ "age"
+res0: play.api.libs.json.JsLookupResult = JsUndefined('age' is undefined on object: {"name":"Adventurer Al","class":{"name":"Wizard","level":4},"health":60,"inventory":[{"name":"Staff of Magic","weight":10,"value":1900},{"name":"Ring of Invisibility","weight":0,"value":37300}]})
+
+scala> wizardJson \ "name"
+res1: play.api.libs.json.JsLookupResult = JsDefined("Adventurer Al")
+
+// Can be nested
+scala> wizardJson \ "class" \ "name"
+res2: play.api.libs.json.JsLookupResult = JsDefined("Wizard")
+
+scala> wizardJson \ "inventory" \ 0 \ "name"
+res3: play.api.libs.json.JsLookupResult = JsDefined("Staff of Magic")
+
+// \\ will look on all children nodes
+scala> wizardJson \\ "name"
+res4: Seq[play.api.libs.json.JsValue] = List("Adventurer Al", "Wizard", "Staff of Magic", "Ring of Invisibility")</code></pre>
+                    </section>
+                    <section>
+                        <h3>Can be parsed into Scala values</h3>
+                        <pre><code class="nohighlight code-small hljs">scala> val json = Json.parse("{\"count\":42}")
+json: play.api.libs.json.JsValue = {"count":42}
+
+// Will throw exception if key is missing or value is wrong type
+scala> (json \ "key").as[Int]
+play.api.libs.json.JsResultException: JsResultException(errors:List((,List(ValidationError(List('key' is undefined on object: {"count":42}),WrappedArray())))))
+scala> (json \ "count").as[Int]
+res0: Int = 42
+
+// Will be empty if key is missing or value is wrong type
+scala> (json \ "key").asOpt[Int]
+res1: Option[Int] = None
+scala> (json \ "count").asOpt[Int]
+res2: Option[Int] = Some(42)
+
+// Preserves full error info
+scala> (json \ "key").validate[Int]
+res3: play.api.libs.json.JsResult[Int] = JsError(List((,List(ValidationError(List('key' is undefined on object: {"count":42}),WrappedArray())))))
+scala> (json \ "count").validate[Int]
+res4: play.api.libs.json.JsResult[Int] = JsSuccess(42,)</code></pre>
+                    </section>
+                    <section>
+                        <h3>Creating new JsValues</h3>
+                        <pre><code class="nohighlight code-small hljs">scala> Json.parse("{\"count\":42}")
+res0: play.api.libs.json.JsValue = {"count":42}
+
+// Requires a (String, JsValueWrapper)*
+scala> Json.obj("count" -> 42, "hello" -> "world")
+res1: play.api.libs.json.JsObject = {"count":42,"hello":"world"}
+
+// Requires a Seq[(String, JsValue)]
+scala> JsObject(Seq("count" -> JsNumber(42), "hello" -> JsString("world")))
+res2: play.api.libs.json.JsObject = {"count":42,"hello":"world"}
+
+// Requires a (JsValueWrapper)*
+scala> Json.arr(42, "hello", "world", Json.obj())
+res3: play.api.libs.json.JsArray = [42,"hello","world",{}]
+
+// Requires a Seq[JsValueWrapper]
+scala> JsArray(Seq(JsNumber(42), JsString("hello")))
+res4: play.api.libs.json.JsArray = [42,"hello"]</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Turning JsValue Into Something Useful</h3>
+                        <pre><code class="nohighlight code-small hljs">scala> case class Adventurer(name: String, profession: Profession, health: Int, inventory: Seq[Item])
+defined class Adventurer
+
+// Extremely verbose
+for {
+  name <- (wizardJson \ "name").validate[String]
+  professionName <- (wizardJson \ "class" \ "name").validate[String]
+  professionLevel <- (wizardJson \ "class" \ "level").validate[Int]
+  ...
+} yield Adventurer(name, Profession(professionName, professionLevel), ...)
+res0: play.api.libs.json.JsResult[Adventurer] = JsSuccess(Adventurer(Adventurer Al,Profession(Wizard,4),...),)
+
+// Much cleaner, but...
+scala> wizardJson.as[Adventurer]
+<console>:22: error: No Json deserializer found for type Adventurer. Try to implement an implicit Reads or Format for this type.
+       wizardJson.as[Adventurer]</code></pre>
+                    </section>
+                    <section>
+                        <h3>Parsing JsValue to Custom Classes with <span class="code-highlight">Reads</span></h3>
+                        <ul>
+                            <li>Lets you specify a <strong class="code-highlight">JsValue -> JsResult[Adventurer]</strong> to use when parsing</li>
+                            <li>Works well as an implicit</li>
+                        </ul>
+                        <pre><code class="nohighlight code-small hljs">scala> val adventurerReads: Reads[Adventurer] = Reads { json =>
+     |   for {
+     |     name <- (json \ "name").validate[String]
+     |     profession <- (json \ "class").validate[Profession] // implicit Reads[Profession]
+     |     health <- (json \ "health").validate[Int]
+     |     inventory <- (json \ "inventory").validate[Seq[Item]] // implicit Reads[Item]
+     |   } yield Adventurer(name, profession, health, inventory)
+     | }
+adventurerReads: play.api.libs.json.Reads[Adventurer] = play.api.libs.json.Reads$$anon$8@4a69000d
+
+scala> wizardJson.validate[Adventurer](adventurerReads)
+res0: play.api.libs.json.JsResult[Adventurer] = JsSuccess(Adventurer(Adventurer Al,Profession(Wizard,4),60,List(Item(Staff of Magic,10,1900), Item(Ring of Invisibility,0,37300))),)
+</code></pre>
+                    </section>
+                    <section>
+                        <h3>PSA: Understanding Validation Errors</h3>
+                        <ul>
+                            <li></li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Serializing back into JsValue</h3>
+                        <pre><code class="nohighlight code-small hljs">// Extremely verbose
+Json.obj(
+  "name" -> adventurer.name,
+  "class" -> Json.obj(
+    "name" -> adventurer.profession.name,
+    "level" -> adventurer.profession.level
+  ),
+  ...
+)
+res0: play.api.libs.json.JsValue = {"name":"Adventurer Al","class":{"name":"Wizard","level":4},...}
+
+// Compiler errors
+Json.obj(
+  "name" -> adventurer.name,
+  "class" -> adventurer.proession,
+  ...
+)
+<console>:28: error: type mismatch;
+ found   : Profession
+ required: play.api.libs.json.Json.JsValueWrapper
+       Json.obj("name" -> adventurer.name, "class" -> adventurer.profession, ...)
+
+// Much cleaner, but...
+scala> Json.toJson(adventurer)
+<console>:28: error: No Json serializer found for type Adventurer. Try to implement an implicit Writes or Format for this type.
+       Json.toJson(adventurer)</code></pre>
+                    </section>
+                    <section>
+                        <h3><span class="code-highlight">Writes</span> to the rescue!</h3>
+                        <ul><li>Lets you specify a <strong class="code-highlight">Adventurer -> JsValue</strong> to use when serializing</li></ul>
+                        <pre><code class="nohighlight code-small hljs">scala> val adventurerWrites = Writes[Adventurer] { adventurer =>
+     |   Json.obj(
+     |     "name" -> adventurer.name,
+     |     "class" -> adventurer.profession, // implicit Writes[Profession]
+     |     "health" -> adventurer.health,
+     |     "inventory" -> adventurer.inventory // implicit Writes[Item]
+     |   )
+     | }
+adventurerWrites: play.api.libs.json.Writes[Adventurer] = play.api.libs.json.Writes$$anon$6@3028809b
+
+scala> val adventurerJson = Json.toJson(adventurer)(adventurerWrites)
+adventurerJson: play.api.libs.json.JsValue = {"name":"Adventurer Al","class":{"name":"Wizard","level":4},"health":60,"inventory":[{"name":"Staff of Magic","weight":10,"value":1900},{"name":"Ring of Invisibility","weight":0,"value":37300}]}
+</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <h3>Format</h3>
+                    <ul>
+                        <li>A (<strong class="code-highlight">Reads[A]</strong>, <strong class="code-highlight">Writes[A]</strong>) pair</li>
+                        <li>Accepted by anywhere a <strong class="code-highlight">Reads</strong> or <strong class="code-highlight">Writes</strong> can be used</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>The Power of Macros</h3>
+                    <pre><code class="nohighlight code-small hljs">import com.lucidchart.core.util.json.converter.PlayJSONFormatsMacro
+implicit val professionReads = PlayJSONFormatsMacro.makeReads[Profession]
+implicit val professionWrites = PlayJSONFormatsMacro.makeWrites[Profession]
+implicit val professionFormat = PlayJSONFormatsMacro.makeFormats[Profession]
+
+implicit val itemFormat = PlayJSONFormatsMacro.makeFormats[Item]
+
+implicit val adventurerFormat = PlayJSONFormatsMacro.makeFormats[Adventurer]</code></pre>
+                </section>
+                <section>
+                    <section>
+                        <h3>Real-World Examples</h3>
+                    </section>
+                    <section>
+                        <pre><code class="scala code-small">// main/user-model/src/main/scala/com/lucidchart/user/model/ratelimit/UserRateLimitResponse.scala
+package com.lucidchart.user.model.ratelimit
+
+import com.lucidchart.core.util.json.converter.PlayJSONFormatsMacro
+import java.util.Date
+import play.api.libs.json._
+
+sealed trait UserRateLimitResponse
+
+case class UserRateLimitOk(userId: Long, action: RateLimitedAction.Value, remaining: Int) extends UserRateLimitResponse
+object UserRateLimitOk {
+  implicit val format: Format[UserRateLimitOk] = PlayJSONFormatsMacro.makeFormat[UserRateLimitOk]
+}
+
+case class UserRateLimitReached(userId: Long, action: RateLimitedAction.Value, nextAvailableTime: Date) extends UserRateLimitResponse
+object UserRateLimitReached {
+  implicit val format: Format[UserRateLimitReached] = PlayJSONFormatsMacro.makeFormat[UserRateLimitReached]
+}
+
+object UserRateLimitResponse {
+
+  implicit val reads: Reads[UserRateLimitResponse] = Reads[UserRateLimitResponse] { json =>
+    json.validate[UserRateLimitOk](UserRateLimitOk.format)
+      .orElse(json.validate[UserRateLimitReached](UserRateLimitReached.format))
+  }
+  implicit val writes: Writes[UserRateLimitResponse] = Writes[UserRateLimitResponse] { response =>
+    response match {
+      case r: UserRateLimitOk => Json.toJson(r)(UserRateLimitOk.format)
+      case r: UserRateLimitReached => Json.toJson(r)(UserRateLimitReached.format)
+    }
+  }
+}</code></pre>
+                    </section>
+                    <section>
+                        <pre><code class="scala code-small">// main/chart-web/app/com/lucidchart/web/controllers/GoogleDrive.scala
+case class DriveOpenData(ids: Seq[String], action: String)
+object DriveOpenData {
+  implicit val format: Format[DriveOpenData] =
+    PlayJSONFormatsMacro.makeFormat[DriveOpenData]
+}
+
+def open(badJsState: String) = CustomAction { implicit request: CustomRequest =>
+  val (userIdOption, redirect) = GoogleApps.handleGoogleLogin(GoogleScopeLevel.drive)
+
+  userIdOption.map { userId =>
+    val jsState = fixJsState(badJsState)
+
+    Json.parse(jsState).asOpt[DriveOpenData].map { state =>
+      // Retrieve file from Drive
+      ...
+    }.getOrElse {
+      logger.error(s"Unable to parse $jsState as DriveOpenData")
+      redirectWithErrorMessage("Unable to retrieve Drive file")
+    }
+  }.getOrElse {
+    redirect
+  }
+}
+
+/**
+ * Google has a bug where they send us json state with a trailing comma in the
+ * json and it breaks Play's json parser.
+ */
+private def fixJsState(badJsState: String): String = {
+  if (badJsState.contains(",}")) {
+    statsd.metric("drive.open.badJsState").increment()
+    badJsState.replace(",}", "}")
+  } else {
+    badJsState
+  }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Workshop</h3>
+                    </section>
+                    <section>
+                        <span>1. Create a JsObject that is equivalent to this JSON.</span>
+                        <pre><code class="json code-small">{
+    "department": "Engineering",
+    "teams": [
+        {
+            "name": "Frontend",
+            "members": [
+                {
+                    "name": "George",
+                    "title": "Software Engineer"
+                },
+                {
+                    "name": "Asher",
+                    "title": "Software Engineer"
+                },
+                {
+                    "name": "Christian",
+                    "title": "Product Manager"
+                }
+            ]
+        },
+        {
+            "name": "Backend",
+            "members": [
+                {
+                    "name": "Heidi",
+                    "title": "Senior Software Engineer"
+                },
+                {
+                    "name": "Trevor",
+                    "title": "Software Engineer"
+                }
+            ]
+        }
+    ]
+}</code></pre>
+                    </section>
+                    <section>
+                        <span>2. Create a <strong class="code-highlight">JsObject</strong> that is equivalent to this data structure.</span>
+                        <pre><code class="scala code-small">case class Engine(cylinders: Int, volume: Double, fuelType: String, horsepower: Int)
+case class Car(make: String, model: String, year: Int, engine: Engine)
+
+Seq(
+  Car("Ford",   "Mustang", 2017, Engine(8, 5.2, "Gasoline", 526)),
+  Car("Toyota", "RAV4",    2017, Engine(4, 2.5, "Gasoline", 176)),
+  Car("Dodge",  "Ram",     2017, Engine(6, 3.6, "Diesel",   305))
+)</code></pre>
+                    </section>
+                    <section>
+                        <span>3. Create a <strong class="code-highlight">Reads</strong> for the <strong class="code-highlight">Car</strong> class.</span>
+                        <pre><code class="scala code-small">case class Engine(cylinders: Int, volume: Double, fuelType: String, horsepower: Int)
+case class Car(make: String, model: String, year: Int, engine: Engine)</code></pre>
+                    </section>
+                    <section>
+                        <span>4. Create a <strong class="code-highlight">Writes</strong> for the <strong class="code-highlight">Car</strong> class.</span>
+                        <pre><code class="scala code-small">case class Engine(cylinders: Int, volume: Double, fuelType: String, horsepower: Int)
+case class Car(make: String, model: String, year: Int, engine: Engine)</code></pre>
+                    </section>
+                </section>
+            </div>
+        </div>
+
+        <script src="../lib/js/head.min.js"></script>
+        <script src="../js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: '../plugin/markdown/marked.js' },
+                    { src: '../plugin/markdown/markdown.js' },
+                    { src: '../plugin/notes/notes.js', async: true },
+                    { src: '../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
+<pre><code class="scala code-small">
