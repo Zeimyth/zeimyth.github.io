@@ -1,0 +1,374 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Scala Workshop - Play Framework</title>
+
+        <link rel="stylesheet" href="../css/reveal.css">
+        <link rel="stylesheet" href="../css/theme/league.css">
+        <style>
+            .reveal pre code {
+                max-height: 500px;
+            }
+
+            .code-highlight {
+                color: #bbe;
+            }
+
+            code.code-small {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            .word-highlight {
+                color: lemonchiffon;
+            }
+        </style>
+
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="../lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h3>Play Framework Overview</h3>
+                    <p>Lucid Scala Workshop 03/23</p>
+                    <a href="http://zeimyth.github.io/scalaworkshop/05">http://zeimyth.github.io/scalaworkshop/05</a>
+                </section>
+                <section>
+                    <h3>Where do we use Play?</h3>
+                    <ul>
+                        <li>
+                            Any <span class="word-highlight">*-service/</span> folders in <span class="word-highlight">main/</span>
+                            <ul>
+                                <li>activity-service</li>
+                                <li>admin</li>
+                                <li>admin2</li>
+                                <li>analytics-service</li>
+                                <li>chart-web</li>
+                                <li>conversion-service</li>
+                                <li>document-service</li>
+                                <li>event-service</li>
+                                <li>font-service</li>
+                                <li>image-service</li>
+                                <li>mailing-service</li>
+                                <li>pdf-service</li>
+                                <li>print-service</li>
+                                <li>reporting-service</li>
+                                <li>sentinel-service</li>
+                                <li>spelling-service</li>
+                                <li>user-service</li>
+                                <li>visio-service</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Features of the Play framework</h3>
+                    <ul>
+                        <li class="fragment">Stateless</li>
+                        <li class="fragment">Fully Asynchronous</li>
+                        <li class="fragment">Functional (paradigm)</li>
+                        <li class="fragment">Great JSON Library</li>
+                        <li class="fragment">Supports Websockets</li>
+                        <li class="fragment">Typesafe Scala API, Routes, Templates</li>
+                        <li class="fragment">Live Code Recompilation</li>
+                        <li class="fragment">Dependency Injection</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>We use Play <strike>2.3.7</strike> 2.5.12</h3>
+                    <p><small>(Thanks, Gregg!)</small></p>
+                    <p><a href="https://www.playframework.com/documentation/2.5.x/Home">Online Documentation</a></p>
+                    <p><a href="https://www.playframework.com/documentation/2.5.12/api/scala/index.html#package">Scaladocs</a></p>
+                </section>
+                <section>
+                    <h3>Lifecycle of a Play Request</h3>
+                    <ol>
+                        <li class="fragment">Received by Netty</li>
+                        <li class="fragment"><a href="https://www.playframework.com/documentation/2.5.x/ScalaHttpRequestHandlers">HttpRequestHandler</a></li>
+                        <li class="fragment">Router</li>
+                        <li class="fragment"><a href="https://www.playframework.com/documentation/2.5.x/ScalaHttpFilters">Filters</a></li>
+                        <li class="fragment">Action</li>
+                        <li class="fragment">(Result returned)</li>
+                    </ol>
+                </section>
+                <section>
+                    <section>
+                        <h3>HttpRequestHandler</h3>
+                        <p>Used for global, cross-cutting concerns</p>
+                        <p>Essentially a mapping function:</p>
+                        <pre><code class="Scala code-small">trait HttpRequestHandler {
+  def handleForRequest(rh: RequestHeader): (RequestHeader, Handler)
+}</code></pre>
+                    </section>
+                    <section>
+                        <p>Lucid specifies a custom HttpRequestHandler</p>
+                        <pre><code class="Scala code-small">class LucidRequestHandler(
+    router: Router,
+    errorHandler: HttpErrorHandler,
+    configuration: HttpConfiguration,
+    filters: Seq[EssentialFilter]
+) extends DefaultHttpRequestHandler(router, errorHandler, configuration, filters: _*) {
+
+  override def routeRequest(request: RequestHeader): Option[Handler] = {
+    request.method match {
+      case HttpVerbs.OPTIONS => Some(Action(Results.Ok))
+      case _ => super.routeRequest(request)
+    }
+  }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Routing Requests</h3>
+                        <pre><code class="nohighlight code-small hljs"># Method Path                                       Action
+GET      /                                          com.example.Controller.index()
+GET      /my/endpoint                               com.example.Controller.showWebPage()
+POST     /url/for/my/form                           com.example.Controller.handleSubmission()
+
+# Support for path parameters
+GET      /image/:name                               com.example.Images.showImage(name)
+PUT      /user/:id                                  com.example.Users.modifyUser(id: Long)
+DELETE   /cars/:make/:model/$year<[0-9]{4}>         com.example.Cars.destroyCar(make, model, year: Int)
+
+# Support for query string parameters
+GET      /cities                                    com.example.Cities.find(longitude: Double, latitude: Double)
+GET      /currency                                  com.example.Money.convert(currencyType: String ?= "USD")</code></pre>
+                    </section>
+                    <section>
+                        <h3>Reverse Routing</h3>
+                        <p>For every route, Play puts a <strong class="code-highlight">routes</strong> object in the controller's package. It has values that generate URLs for given Actions.</p>
+                        <pre><code class="scala code-small">package com.example
+
+import play.api.Controller
+
+class SomeOtherController extends Controller {
+  def myAwesomeEndpoint = Action {
+    Redirect(routes.Images.showImage("the-name-of-my-favorite-image"))
+    // Equivalent to:
+    // Redirect("/image/the-name-of-my-favorite-image")
+  }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <h3>Filters</h3>
+                    <p>Essentially lightweight <strong class="code-highlight">Action</strong>s for <strong class="code-highlight">Action</strong> composition</p>
+                    <p><strong class="code-highlight">Filter</strong>s are given the <strong class="code-highlight">RequestHeader</strong>s and the next <strong class="code-highlight">Filter</strong>/<strong class="code-highlight">Action</strong> to call, and can add processing before and after the next call</p>
+                    <pre><code class="scala code-small">class ControllerHeaderFilter extends EssentialFilter {
+
+  private def controllerName(request: RequestHeader): Option[String] = {
+    request.tags.get(Tags.RouteController).map { controllerClass =>
+      val method: String = request.tags.getOrElse(Tags.RouteActionMethod, "")
+      abbreviator.abbreviate(controllerClass) + "." + method
+    }
+  }
+
+  def apply(next: EssentialAction): EssentialAction = EssentialAction { request =>
+    next(request).map { result =>
+      controllerName(request).fold(result) { name =>
+        result.withHeaders(ControllerHeaderFilter.headerName -> name)
+      }
+    }(Executors.immediate)
+  }
+}</code></pre>
+                </section>
+                <section>
+                    <section>
+                        <h3>Understanding Actions</h3>
+                        <p>Essentially a mapping function:</p>
+                        <pre><code class="scala code-small">// trait Action[A] extends (Request[A] => Result)
+
+import play.api.mvc.Action
+
+def endpoint = Action { request =>
+  if (hasAccessToResource(request)) {
+    val responseBody: JsObject = doSomething(request.body)
+    Ok(result)
+  } else {
+    Forbidden(Json.obj("message" -> "Access denied"))
+  }
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>Parameterized on type of body</h3>
+                        <p>The previous example could have been written like this:</p>
+                        <pre><code class="scala code-small">import play.api.mvc.{Action, BodyParser, Request}
+
+def endpoint = Action(BodyParsers.parse.default) { request: Request[AnyContent] =></code></pre>
+                    </section>
+                    <section>
+                        <h3>Parsing the Request Body</h3>
+                        <p><strong class="code-highlight">BodyParser</strong> is an optional parameter to <strong class="code-highlight">Action</strong>
+                        that will parse a <strong class="code-highlight">ByteString</strong> into the type of the body.</p>
+                        <pre><code class="scala code-small">// BadRequest if Content-Type is not "text/json" or "application/json"
+def endpoint = Action(BodyParsers.parse.json) { request: Request[JsValue] => ... }
+// BadRequest if Content-Type is not "text/xml"
+def endpoint = Action(BodyParsers.parse.xml) { request: Request[NodeSeq] => ... }
+
+import play.api.data.Form
+case class ExpectedData( ... )
+val myForm: Form[ExpectedData] = ...
+def endpoint = Action(BodyParsers.parse.form(myForm)) {
+  request: Request[ExpectedData] => ...
+}
+
+implicit val formats: Formats[ExpectedData] = ...
+def endpoint = Action(BodyParsers.parse.json[ExpectedData]) {
+  request: Request[ExpectedData] => ...
+}
+
+// Manual parsing
+def endpoint = Action { request: Request[AnyContent] =>
+  myForm.bindFromRequest.fold(
+   errors => BadRequest,
+   expectedData => doSomething(expectedData)
+  )
+}
+
+def endpoint = Action { request: Request[AnyContent] =>
+  request.body.asJson
+    .flatMap(json => json.asOpt[ExpectedData].map(doSomething))
+    .getOrElse(BadRequest)
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>Actions Support Async Operations</h3>
+                        <pre><code class="scala code-small">def asyncEndpoint = Action.async { request =>
+  doSomethingAwesomeButSlow(request)
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>How it Works at Lucid</h3>
+                        <p>chart-web:</p>
+                        <pre><code class="scala code-small">def resetDialogs = CustomAction { implicit request: CustomRequest =>
+  if (configuration.getSafeBoolean("user.allowResetDialogs")) {
+    request.userId.fold(Unauthorized) { userId =>
+      services.metadata.user.deleteDialogsShown(userId)
+      Ok
+    }
+  } else {
+    BadRequest
+  }
+}</code></pre>
+                    </section>
+                    <section>
+                        <p>chart-web:</p>
+                        <pre><code class="scala code-small">private case class KissMetricsUrlConsumerData(
+    returnUrl: String,
+    hash: String,
+    id: String,
+    event: Option[String],
+    propertyName: Option[String],
+    propertyValue: Option[String]
+)
+
+private def kissMetricsUrlConsumerForm = Form(
+  mapping(
+    "rurl" -> nonEmptyText,
+    "hash" -> nonEmptyText,
+    "id" -> nonEmptyText,
+    "event" -> optional(text),
+    "property_name" -> optional(text),
+    "property_value" -> optional(text)
+  )(KissMetricsUrlConsumerData.apply)(KissMetricsUrlConsumerData.unapply)
+  .verifying("Bad Request", validateSecurityToken)
+  )
+)
+
+def kissMetricsUrlConsumer() = CustomAction { implicit request: CustomRequest =>
+  kissMetricsUrlConsumerForm.bindFromRequest().fold(
+    formWithErrors => {
+      Redirect("/users/login")
+        .flashing("message" -> "Bad Request", "class" -> "error")
+    },
+    data => {
+      if (data.event.isDefined &&
+          data.event.get != "" &&
+          data.propertyName.isDefined &&
+          data.propertyName.get != "") {
+
+        KissmetricsUtil.recordEvent(
+          data.id,
+          data.event.get,
+          request.productVal,
+          Map(data.propertyName.get -> data.propertyValue.get)
+        )
+      } else if (data.propertyName.isDefined && data.propertyName.get != "") {
+        KissmetricsUtil.setProperties(
+          data.id,
+          Map(data.propertyName.get -> data.propertyValue.get),
+          request.productVal
+        )
+      } else if (data.event.isDefined && data.event.get != "") {
+        KissmetricsUtil.recordEvent(data.id, data.event.get, request.productVal)
+      }
+
+      Redirect(data.returnUrl)
+    }
+  )
+}</code></pre>
+                    </section>
+                    <section>
+                        <p>user-service:</p>
+                        <pre><code class="scala code-small">def main(
+    accountId: Long,
+    paymentService: PaymentService.Value
+) = withAuth { implicit r =>
+  if (authUserHasAccountPayPermissions(accountId)) {
+    AccountPaymentServicesModel
+      .getPaymentServiceIdForAccount(accountId, paymentService)
+      .map { externalId =>
+        Ok(Json.toJson(AccountPaymentService(accountId, paymentService, externalId)))
+      }.getOrElse {
+        notFoundResponse()
+      }
+  } else {
+    forbiddenResponse()
+  }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <h3>Worked Examples</h3>
+                    <p>None this week</p>
+                    <p>Come next time to walk through creating a new endpoint.</p>
+                </section>
+            </div>
+        </div>
+
+        <script src="../lib/js/head.min.js"></script>
+        <script src="../js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: '../plugin/markdown/marked.js' },
+                    { src: '../plugin/markdown/markdown.js' },
+                    { src: '../plugin/notes/notes.js', async: true },
+                    { src: '../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
