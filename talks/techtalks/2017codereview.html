@@ -150,8 +150,8 @@
                 <section>
                   <p>How can I make my code reviews more effective as a</p>
                   <ul>
-                    <li>code writer?</li>
                     <li>code author?</li>
+                    <li>code reviewer?</li>
                   </ul>
                     <aside class="notes"></aside>
                 </section>
@@ -179,8 +179,10 @@
                       Commits are cheap! Create a lot of them. Not only will your code reviewers be grateful, but the git history will be easier to manage as well.
                       <br />
                       Will be brought up later, but make sure every commit builds on its own. If you ever do a git bisect, you'll thank me.
+                      <!-- TODO: Feedback re: how to actually write modular commits -->
                     </aside>
                   </section>
+                  <!-- TODO: Do I want this example? -->
                   <section>
                     <h3>Example</h3>
                     <p>Converting RecurlyId from a <span class="code-highlight">Long</span> data type to a <span class="code-highlight">UUID</span> string</p>
@@ -207,7 +209,7 @@
                       <br />
                       Reviewing tons of interconnected changes gets tiring!
                       <br />
-                      Added benefit: continuously deply incremental, bite-sized changes
+                      Added benefit: continuously depoly incremental, bite-sized changes
                     </aside>
                   </section>
                   <section>
@@ -266,6 +268,7 @@
                 <section>
                   <section>
                     <h3>Principle: Who you ask to review your code matters</h3>
+                    <!-- TODO: Note to talk to experts /before/ the review -->
                     <ul>
                       <li>
                         Feature experts
@@ -309,6 +312,7 @@
                     <li>Provide background for the changes and testing tips for the code</li>
                     <li>Explain complex algorithms</li>
                     <li>Review large or complex changes in person</li>
+                    <!-- TODO: Note about acceptance criteria -->
                   </ul>
                   <img src="codereview/ExplanatoryComments.png" />
                   <aside class="notes">
@@ -377,6 +381,7 @@
                   </ul>
                   <aside class="notes">
                     <ul>
+                      <li>Merge in master example: I change the name of a value, but you add a new reference to the old name</li>
                       <li>Once you approve of someone's pull request, you are just as responsible as they are for its quality and impact</li>
                     </ul>
                   </aside>
@@ -402,7 +407,6 @@
                     <li>Code reviews are about quality, not finding fault. The point of software code review is to eliminate as many defects as possible, regardless of who "caused" the error.</li>
                     <li>As code reviews expose developers to new ideas and technologies, they write better and better code.</li>
                     <li>When done right, code reviews actually save time in the long run.</li>
-                    <li>As code reviews expose developers to new ideas and technologies, they write better and better code.</li>
                   </ul>
                 </section>
                 <section>
