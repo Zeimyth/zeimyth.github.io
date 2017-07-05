@@ -1,0 +1,432 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Cracking the Code Review - OpenWest 2017</title>
+
+        <link rel="stylesheet" href="../reveal/css/reveal.css">
+
+        <!-- Primary presenation theme -->
+        <!-- <link rel="stylesheet" href="../reveal/css/theme/league.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/css/theme/serif.css"> <!-- light -->
+
+        <!-- Syntax highlighting theme -->
+        <!-- <link rel="stylesheet" href="../reveal/lib/css/zenburn.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/lib/css/tomorrow.min.css"> <!-- light -->
+
+        <style>
+            .reveal pre code {
+                max-height: 500px;
+            }
+
+            .code-highlight {
+                color: #77e;
+            }
+
+            code.code-small {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            p.text-small {
+                font-size: 16pt;
+                line-height: 18pt;
+            }
+
+            .word-highlight {
+                /*color: lemonchiffon;*/ /* dark */
+                color: crimson; /*light*/
+            }
+
+            .sub-title .author {
+              font-size: 150%;
+            }
+
+            .sub-title a {
+              font-size: 50%;
+            }
+
+            .sub-title p:not(.author) {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .sub-title .job-title {
+              margin-bottom: 30px;
+            }
+
+            .image p {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .reveal ul ul li {
+              font-size: 75%;
+            }
+        </style>
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal/css/print/pdf.css' : '../reveal/css/print/paper.css';
+            document.getElementsByTagName('head')[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h2>Cracking the Code Review</h2>
+                    <div class="sub-title">
+                      <p class="author">Stephen Rollins</p>
+                      <p>07-05-17</p>
+                      <a href="http://zeimyth.github.io/talks/techtalks/2017codereview.html">http://zeimyth.github.io/talks/techtalks/2017codereview.html</a>
+                    </div>
+                    <aside class="notes">
+                      <p>Please feel free to ask questions or make comments throughout the presentation</p>
+                      <p>Makes for a more effective learning experience for all</p></aside>
+                </section>
+                <section>
+                  <div class="image">
+                    <img
+                      src="codereview/xkcd_code_quality_2.png"
+                      title="It's like you tried to define a formal grammar based on fragments of a raw database dump from the QuickBooks file of a company that's about to collapse in an accounting scandal."
+                      alt="https://xkcd.com/1695/"
+                      srcset="codereview/xkcd_code_quality_2.png 2x"
+                    />
+                    <p>Source: xkcd.com</p>
+                  </div>
+                  <aside class="notes">
+                    <p>Every good presentation begins with an XKCD.</p>
+                    <p>(20 second pause)</p>
+                    <p>- How to avoid being in this situation!</p>
+                  </aside>
+                </section>
+                <section>
+                  <section>
+                    <h3>What is a Code Review?</h3>
+                    <ul>
+                      <li>A final step in the development process</li>
+                      <li>
+                        Have your code looked over and tested by your peers
+                        <ul>
+                          <li>Especially effective if peers are experts in that section of the code</li>
+                        </ul>
+                      </li>
+                    </ul>
+                    <aside class="notes"></aside>
+                  </section>
+                  <section>
+                    <h3>Why do we do Code Reviews?</h3>
+                    <ul>
+                      <li>Code quality matters!</li>
+                      <li>Fresh, unbiased eyes can find errors and opportunities for improvement</li>
+                    </ul>
+                    <aside class="notes"></aside>
+                  </section>
+                  <section>
+                    <blockquote>
+                      After experiencing the benefits of peer reviews for nearly fifteen years, I would never work in a team that did not perform them.
+                      <br />
+                      - Karl Wiegers, “Humanizing Peer Reviews”
+                    </blockquote>
+                    <aside class="notes"></aside>
+                  </section>
+                </section>
+                <section>
+                  <h3>What does a Good Code Review Look Like?</h3>
+                  <ul>
+                    <li>Modular, easy to follow</li>
+                    <li>Makes good use of everyone's time</li>
+                    <li>Effectively transfers knowledge</li>
+                    <li>Thorough; identifies relevant issues to fix</li>
+                  </ul>
+                    <aside class="notes"></aside>
+                </section>
+                <section>
+                  <p>How can I make my code reviews more effective as a</p>
+                  <ul>
+                    <li>code writer?</li>
+                    <li>code author?</li>
+                  </ul>
+                    <aside class="notes"></aside>
+                </section>
+                <section>
+                  <h3>Responsibilities of the Code Author</h3>
+                  <ul>
+                    <li>Empower your reviewers be more effective</li>
+                    <li>Pick the right reviewers</li>
+                    <li>Don't waste your reviewers’ time</li>
+                  </ul>
+                    <aside class="notes"></aside>
+                </section>
+                <section>
+                  <section>
+                    <h3>Principle: Modular commits and code reviews are easier to review effectively</h3>
+                    <ul>
+                      <li>Just as good function or class has a single, clear, straightforward purpose, a good commit or code review solves one clear problem and does it well</li>
+                      <li>One major change per commit</li>
+                      <li>1:1 mapping between issue in JIRA and code review</li>
+                      <li>Keep large refactoring or formatting changes separate</li>
+                    </ul>
+                    <aside class="notes">
+                      "Single responsibility principle" for code reviewing.
+                      <br />
+                      Commits are cheap! Create a lot of them. Not only will your code reviewers be grateful, but the git history will be easier to manage as well.
+                      <br />
+                      Will be brought up later, but make sure every commit builds on its own. If you ever do a git bisect, you'll thank me.
+                    </aside>
+                  </section>
+                  <section>
+                    <h3>Example</h3>
+                    <p>Converting RecurlyId from a <span class="code-highlight">Long</span> data type to a <span class="code-highlight">UUID</span> string</p>
+                    <img src="codereview/Modular Commits.png" />
+                    <aside class="notes">
+                      <ul>
+                        <li>Legacy restriction unnecessarily required RecurlyID to be a Long</li>
+                        <li>Longs were generated sequentially; resulted in collisions between dev environments due to shared Recurly instance</li>
+                        <li>My job: remove Long restriction, generate random UUID string for every Recurly user</li>
+                      </ul>
+                    </aside>
+                  </section>
+                </section>
+                <section>
+                  <section>
+                    <h3>Principle: Smaller code reviews get reviewed more thoroughly</h3>
+                    <ul>
+                      <li>Break big features into small but complete changes</li>
+                      <li>Push/review incremental changes frequently</li>
+                      <li>Avoid asking reviewers to stare at your code for hours</li>
+                    </ul>
+                    <aside class="notes">
+                      An extension of the "single repsonsibility principle"
+                      <br />
+                      Reviewing tons of interconnected changes gets tiring!
+                      <br />
+                      Added benefit: continuously deply incremental, bite-sized changes
+                    </aside>
+                  </section>
+                  <section>
+                    <img src="codereview/Defects per Line of Code.png" />
+                    <blockquote>Ask a programmer to review 10 lines of code, and they’ll find 10 issues. Ask them to review 500 lines, and they’ll just say it looks good.</blockquote>
+                    <aside class="notes">You are hurting your own code quality by asking people to review huge pull requests.</aside>
+                  </section>
+                </section>
+                <section>
+                  <section>
+                    <h3>Principle: Don’t distract your reviewers with tedious code flaws</h3>
+                    <ul>
+                      <li>Review your own code</li>
+                      <li>Let your code build</li>
+                    </ul>
+                    <aside class="notes">If your reviewers are catching issues that you could easily have caught yourself, you’re lowering the overall productivity of your team</aside>
+                  </section>
+                  <section>
+                    <h3>Review your own code</h3>
+                    <ul>
+                      <li>Before submitting code review, look over changes one last time</li>
+                      <li>Minimal time/effort can save your reviewers’ time</li>
+                      <li>Find opportunities to refactor or fix bugs</li>
+                    </ul>
+                    <aside class="notes">
+                      <ul>
+                        <li>I know you’re tired of it, or maybe you think it’s flawless</li>
+                        <li>No one understands intent of your code like you!</li>
+                      </ul>
+                    </aside>
+                  </section>
+                  <section>
+                    <h3>Let your code build</h3>
+                    <ul>
+                      <li>Let static analysis and runtime tests do what they do best!</li>
+                      <li>Merge latest upstream branch into your branch before running builds</li>
+                      <li>Avoid spamming reviewers with constant code review updates</li>
+                    </ul>
+                    <aside class="notes">
+                      <ul>
+                        <li>
+                          Static analysis and tests:
+                          <ul><li>ensures the code reviewer’s time is spent checking for things machines miss</li></ul>
+                        </li>
+                        <li>
+                          Merging
+                          <ul>
+                            <li>Ensures builds are as accurate as possible</li>
+                            <li>Avoids merge "conflicts" that git allows but cause build errors</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </aside>
+                  </section>
+                </section>
+                <section>
+                  <section>
+                    <h3>Principle: Who you ask to review your code matters</h3>
+                    <ul>
+                      <li>
+                        Feature experts
+                        <ul><li>for finding bugs</li></ul>
+                      </li>
+                      <li>
+                        Feature novices
+                        <ul><li>to share knowledge</li></ul>
+                      </li>
+                      <li>Non-technical stakeholders</li>
+                      <li>Don't overwhelm people who have a lot of code reviews already</li>
+                    </ul>
+                    <aside class="notes">
+                      <ul>
+                        <li>Code reviews should not be just a rubber stamp; pick people who know the code and can actually apply their expertise to reviewing your changes</li>
+                        <li>Stakeholders probably don't need to look at your code, but they should review your feature</li>
+                        <li>
+                          Importance of sharing knowledge: bus factor
+                          <ul><li>the minimum number of team members that have to suddenly disappear from a project before the project stalls due to lack of knowledgeable or competent personnel</li></ul>
+                        </li>
+                      </ul>
+                    </aside>
+                  </section>
+                  <section>
+                    <h3>Balance between “enough” and “too many”</h3>
+                    <ul>
+                      <li>Too many may cause complacency from reviewers</li>
+                      <li>Ask highly specialized or overwhelmed reviewers to review only certain files/functions/lines</li>
+                      <li>Don’t be a single point of (knowledge) failure</li>
+                    </ul>
+                    <aside class="notes">
+                      <ul><li>Most relevant in an asynchronous review situation, such as Stash</li></ul>
+                    </aside>
+                  </section>
+                </section>
+                <section>
+                  <!-- TODO: Too tall? -->
+                  <h3>Principle: Enable your reviewers to guide themselves through your code</h3>
+                  <ul>
+                    <li>Leave helpful comments on code reviews and/or in code to show flow of thought</li>
+                    <li>Provide background for the changes and testing tips for the code</li>
+                    <li>Explain complex algorithms</li>
+                    <li>Review large or complex changes in person</li>
+                  </ul>
+                  <img src="codereview/ExplanatoryComments.png" />
+                  <aside class="notes">
+                    <ul>
+                      <li>Remember, we’re not mind readers</li>
+                      <li>Also, did you make your pull request modular?</li>
+                    </ul>
+                  </aside>
+                </section>
+                <section>
+                  <section>
+                    <h3>Responsibilities of the Code Reviewer</h3>
+                    <ul>
+                      <li>Review the code, not the author</li>
+                      <li>Be timely</li>
+                      <li>Be thorough</li>
+                    </ul>
+                    <aside class="notes"></aside>
+                  </section>
+                  <section>
+                    <img src="codereview/positive.jpg" />
+                    <!-- <img src="codereview/positive.jpg" srcset="codereview/positive.jpg 2x" /> -->
+                    <aside class="notes"></aside>
+                  </section>
+                </section>
+                <section>
+                  <h3>Principle: Computers are better at reading code than you are</h3>
+                  <ul>
+                    <li>Ensure builds pass</li>
+                    <li>
+                      Run the code, don’t just read it
+                      <ul>
+                        <li>Ask developer for testing suggestions or affected features</li>
+                      </ul>
+                    </li>
+                  </ul>
+                  <aside class="notes">
+                    <ul>
+                      <li>Run it at the developer’s computer if that’s easiest</li>
+                    </ul>
+                  </aside>
+                </section>
+                <section>
+                  <h3>Principle: Code authors need to context-switch, too</h3>
+                  <ul>
+                    <li>Be timely in reviewing and giving feedback</li>
+                    <li>Be willing to interrupt your work for high-priority code reviews</li>
+                  </ul>
+                  <aside class="notes">
+                    <ul>
+                      <li>Don't let your code reviewing habits be a detriment to your team's productivity</li>
+                    </ul>
+                  </aside>
+                </section>
+                <section>
+                  <h3>Principle: Be a gatekeeper of code quality</h3>
+                  <ul>
+                    <li>Understand your company’s code quality guidelines</li>
+                    <li>Unit tests</li>
+                    <li>I18n</li>
+                    <li>Logging and metrics</li>
+                    <li>Analytics</li>
+                    <li>Security concerns</li>
+                    <li>Adheres to accepted style guides</li>
+                    <li>Has merged in latest upstream branch recently</li>
+                  </ul>
+                  <aside class="notes">
+                    <ul>
+                      <li>Once you approve of someone's pull request, you are just as responsible as they are for its quality and impact</li>
+                    </ul>
+                  </aside>
+                </section>
+                <section>
+                  <h3>Principle: Be the reviewer you wish you could have</h3>
+                  <ul>
+                    <li>Leave helpful feedback in addition to pointing out bugs</li>
+                    <li>Ask questions; prompt discussion and thoughtful analysis</li>
+                    <li>Don’t rush your reviews</li>
+                  </ul>
+                  <aside class="notes"></aside>
+                </section>
+                <section>
+                  <h3>Additional Reading</h3>
+                  <p><a href="https://www.lucidchart.com/techblog/2017/02/08/cracking-the-code-review-part-1-preparing-your-code-review/">https://www.lucidchart.com/techblog/2017/02/08/cracking-the-code-review-part-1-preparing-your-code-review/</a></p>
+                  <p><a href="https://www.lucidchart.com/techblog/2017/03/02/cracking-code-review-part-2-tips-reviewers/">https://www.lucidchart.com/techblog/2017/03/02/cracking-code-review-part-2-tips-reviewers/</a></p>
+                  <p><a href="https://testing.googleblog.com/2017/06/code-health-too-many-comments-on-your.html">https://testing.googleblog.com/2017/06/code-health-too-many-comments-on-your.html</a></p>
+                </section>
+                <section>
+                  <h3>Final Thoughts</h3>
+                  <ul>
+                    <li>Code reviews are about quality, not finding fault. The point of software code review is to eliminate as many defects as possible, regardless of who "caused" the error.</li>
+                    <li>As code reviews expose developers to new ideas and technologies, they write better and better code.</li>
+                    <li>When done right, code reviews actually save time in the long run.</li>
+                    <li>As code reviews expose developers to new ideas and technologies, they write better and better code.</li>
+                  </ul>
+                </section>
+                <section>
+                  <h2>Questions?</h2>
+                </section>
+            </div>
+        </div>
+
+        <script src="../reveal/lib/js/head.min.js"></script>
+        <script src="../reveal/js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: '../reveal/plugin/markdown/marked.js' },
+                    { src: '../reveal/plugin/markdown/markdown.js' },
+                    { src: '../reveal/plugin/notes/notes.js', async: true },
+                    { src: '../reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
