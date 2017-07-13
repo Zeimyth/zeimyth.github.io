@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>A Crash Course in Functional Programming - OpenWest 2017</title>
+        <title>A Crash Course in Functional Programming - OpenWest 2017</title>
 
         <link rel="stylesheet" href="../reveal/css/reveal.css">
 
@@ -67,547 +67,555 @@
             }
         </style>
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal/css/print/pdf.css' : '../reveal/css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>
-					<h3>A Crash Course in Functional Programming</h3>
-            <div class="sub-title">
-              <p class="author">Stephen Rollins</p>
-              <div class="job-title">
-                <p>Software Engineer</p>
-                <p>Lucid Software Inc</p>
-              </div>
-              <p>OpenWest 2017</p>
-              <p>07-13-17</p>
-              <a href="http://zeimyth.github.io/talks/openwest/2017functionalprogramming.html">http://zeimyth.github.io/talks/openwest/2017codereview.html</a>
-            </div>
-            <aside class="notes">
-              <p>Please feel free to ask questions or make comments throughout the presentation</p>
-              <p>Makes for a more effective learning experience for all</p></aside>
-				</section>
-				<section>
-          <div class="image">
-            <img
-              src="functionalprogramming/functional_xkcd_2x.png"
-              title="Functional programming combines the flexibility and power of abstract mathematics with the intuitive clarity of abstract mathematics."
-              alt="https://xkcd.com/1270/"
-              srcset="functionalprogramming/functional_xkcd_2x.png 2x"
-            />
-  					<p>Functional programming combines the flexibility and power of abstract mathematics with the intuitive clarity of abstract mathematics.</p>
-            <p>Source: xkcd.com</p>
-          </div>
-				</section>
-				<section>
-					<section>
-						<h3>What is Functional Programming?</h3>
-						<ul><li>Programming without side effects</li></ul>
-					</section>
-					<section>
-						Not functional:
-						<pre><code class="scala code-small">var count = 1
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal/css/print/pdf.css' : '../reveal/css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                  <h3>A Crash Course in Functional Programming</h3>
+                  <div class="sub-title">
+                    <p class="author">Stephen Rollins</p>
+                    <div class="job-title">
+                      <p>Software Engineer</p>
+                      <p>Lucid Software Inc</p>
+                    </div>
+                    <p>OpenWest 2017</p>
+                    <p>07-13-17</p>
+                    <a href="http://zeimyth.github.io/talks/openwest/2017functionalprogramming.html">http://zeimyth.github.io/talks/openwest/2017functionalprogramming.html</a>
+                  </div>
+                  <aside class="notes">
+                    <p>Please feel free to ask questions or make comments throughout the presentation</p>
+                    <p>Makes for a more effective learning experience for all</p>
+                  </aside>
+                </section>
+                <section>
+                  <div class="image">
+                    <img
+                      src="functionalprogramming/functional_xkcd_2x.png"
+                      title="Functional programming combines the flexibility and power of abstract mathematics with the intuitive clarity of abstract mathematics."
+                      alt="https://xkcd.com/1270/"
+                      srcset="functionalprogramming/functional_xkcd_2x.png 2x"
+                    />
+                    <p>Functional programming combines the flexibility and power of abstract mathematics with the intuitive clarity of abstract mathematics.</p>
+                    <p>Source: xkcd.com</p>
+                  </div>
+                  <aside class="notes">
+                    <ul>
+                        <li>Every good presentation begins with an XKCD!</li>
+                        <li>
+                            FP can seem daunting
+                            <ul>
+                                <li>have to be smart to understand?</li>
+                                <li>symbols and algebras; seems so abstract</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </aside>
+                </section>
+                <section>
+                    <section>
+                        <h3>What is Functional Programming?</h3>
+                        <ul><li>Programming without side effects</li></ul>
+                        <aside class="notes">What are side effects? Well, let's look at an example...</aside>
+                    </section>
+                    <section>
+                        With Side Effects (JavaScript):
+                        <pre><code class="javascript code-small">var count = 1
 
-def addOne(): Unit = count = count + 1
-
-addOne()
-println(count)</code></pre>
-						Functional:
-						<pre><code class="scala code-small">val count = 1
-
-def addOne(x: Int): Int = x + 1
-
-println(addOne(count))</code></pre>
-					</section>
-				</section>
-				<section>
-					<section>
-						<h3>Guiding Principles</h3>
-						<h4>No mutation</h4>
-						<ul>
-							<li>Create new objects with updated values</li>
-							<li>No global state</li>
-							<li>Naturally thread-safe</li>
-						</ul>
-					</section>
-					<section>
-						<h4>No side-effects</h4>
-						<ul>
-							<li>
-								Referential transparency
-								<ul>
-									<li>Calling function twice with the same values yields same results</li>
-									<li>Allows many compiler optimizations</li>
-								</ul>
-							</li>
-							<li>All functions should return a result</li>
-						</ul>
-					</section>
-					<section>
-						<h4>Expressions, not statements</h4>
-						Statement (JavaScript):
-						<pre><code class="javascript code-small">var productName;
-
-if (product.equals(Products.chart)) {
-    productName = "Lucidchart";
-} else {
-    productName = "Lucidpress";
-}</code></pre>
-						Expression (Scala):
-						<pre><code class="scala code-small">val productName = if (product == Products.chart) {
-  "Lucidchart"
-} else {
-  "Lucidpress"
-}</code></pre>
-					</section>
-				</section>
-				<section>
-					<section>
-						<h3>Key Tools</h3>
-						<h4>First class functions</h4>
-						Functions can be assigned to a value, passed as a parameter, or returned from a function.
-						<pre><code class="scala code-small">/**
- * Returns a function that allows you to add `x` to any value you want, like addition
- * but where you can't modify the left value
- */
-def partialAdd(x: Int): Int => Int = { y =>
-  x + y
+var addOne = function() {
+    return ++count;
 }
 
-/** Effectively adds `y` to the left-hand side of a partial add */
-def addExtend(y: Int, add: Int => Int): Int => Int = { z =>
-  add(y) + z
+console.log(addOne()); // 2
+console.log(addOne()); // 3</code></pre>
+                        <div class="fragment fade-up">
+                            Without Side Effects (JavaScript):
+                            <pre><code class="javascript code-small">var count = 1
+
+var addOne = function() {
+    return count + 1;
 }
 
-val plusThree: Int => Int = partialAdd(3)
-plusThree(8) // 11
+console.log(addOne()); // 2
+console.log(addOne()); // 2</code></pre>
+                        </div>
+                        <span class="fragment">This is called a <strong class="code-highlight">pure function</strong>.</span>
+                        <aside class="notes">
+                            <ul>
+                                <li>In the first example, incrementing <strong>count</strong> is a side effect of calling <strong>addOne</strong>.</li>
+                                <li>More details on Pure Functions coming up</li>
+                            </ul></aside>
+                    </section>
+                </section>
+                <section>
+                    <h3>Guiding Principles of Functional Programming</h3>
+                    <ul>
+                        <li>Pure functions</li> <!-- Referential transparency, understandable/predictable, mnemonizable, dead code removal, concurrency -->
+                        <li>No mutation</li> <!-- Copy instead of mutate -->
+                        <li>Expression-based programming</li>
+                    </ul>
+                    <aside class="notes">These principles will lay a foundation for us to better understand the "whys" of functional programming</aside>
+                </section>
+                <section>
+                    <section>
+                        <h3>Pure Functions</h3>
+                        <div>A function that:</div>
+                        <ul>
+                            <li>has no side effects</li>
+                            <li>
+                                returns the same result for the same inputs
+                                <ul><li>referential transparency</li></ul>
+                            </li>
+                        </ul>
+                        <pre class="fragment"><code class="hljs code-small">f(x) = x + 1</code></pre>
+                        <pre class="fragment"><code class="javascript code-small">var addOne = function(x) {
+    return x + 1;
+}</code></pre>
+                        <aside class="notes">"Function" in the mathematical sense (fragment)</aside>
+                    </section>
+                    <section>
+                        <h3>Referential transparency</h3>
+                        <ul>
+                            <li>Calling a function multiple times with the same inputs results in the same outputs</li>
+                            <li>
+                                Makes code easier to reason about
+                                <ul>
+                                    <li>Easier to prove correctness</li>
+                                    <li>Safer refactoring</li>
+                                    <li>Safer concurrency</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Makes code memoizable
+                                <ul><li>Cache the result of an expensive calculation for given inputs</li></ul>
+                            </li>
+                        </ul>
+                        <aside class="notes">Why do we want referential transparency?</aside>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Immutability</h3>
+                        <ul>
+                            <li>
+                                A new copy of an object must be created to change its state
+                                <ul><li>Conversely, objects do not need to be copied to guarantee functions won't modify them (pass-by-reference)</li></ul>
+                            </li>
+                            <li>
+                                Makes code easier to reason about
+                                <ul><li>Guarantees thread safety</li></ul>
+                            </li>
+                            <li>Generally only enforceable at compile time</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <p>Immutability and pure functions go hand-in-hand</p>
+                        Mutable and impure (JavaScript):
+                        <pre><code class="javascript code-small">var a = [1, 2, 3];
+var b = a.push(4);
 
-val plusFive: Int => Int = addExtend(2, partialAdd)
-plusFive(1) // 6</code></pre>
-					</section>
-					<section>
-						<h4>Function currying</h4>
-						Calling a function with only some of its parameters. Result is a function that takes the rest of the parameters and returns the final result.
-						<pre><code class="scala code-small">val plusThree: Int => Int = 3 + _
-plusThree(6) // 9
+console.log(a); // [1, 2, 3, 4]
+console.log(b); // 4 (length of the new array)</code></pre>
+                        Immutable and pure (JavaScript):
+                        <pre><code class="javascript code-small">var a = [1, 2, 3];
+var b = a.concat(4);
 
-// Alternatively
-def add(x: Int)(y: Int): Int = x + y
-val plusThree: Int => Int = add(3)
-plusThree(6) // 9</code></pre>
-					</section>
-					<section>
-						<h4>Pure functions</h4>
-						<ul>
-							<li>
-								Functions with no side-effects
-								<ul><li>Including I/O</li></ul>
-							</li>
-							<li>
-								Referential transparency
-								<ul><li>Enables memoization</li></ul>
-							</li>
-							<li>
-								Dead code detection
-								<ul><li>Ignoring the result of a pure function is equivalent to never having called it at all</li></ul>
-							</li>
-							<li>Pure functions with no data dependencies can safely be run in any order</li>
-						</ul>
-					</section>
-					<section>
-						<h4>Recursion</h4>
-						<p>"Looping" for functional programmers</p>
-						Imperative (Javascript):
-						<pre><code class="javascript code-small">function factorial(n) {
-    let count = 1;
+console.log(a); // [1, 2, 3]
+console.log(b); // [1, 2, 3, 4]</code></pre>
+                        <aside class="notes">Pure functions aren't directly related to immutability (although they don't modify state), but an API providing pure functions will naturally encourage immutability.</aside>
+                    </section>
+                </section>
+                <section>
+                    <h3>Expressions vs Statements</h3>
+                    <p>What are the results of these two lines?</p>
+                    <p>Java:</p>
+                    <pre><code class="java code-small">// 1
+if (favoriteColor != null) favoriteColor else defaultFavoriteColor; // Statement
 
-    for (let i = n; i > 1; i--) {
-        count *= i;
+// 2
+favoriteColor != null ? favoriteColor : defaultFavoriteColor; // Expression</code></pre>
+                    <ul class="fragment">
+                        <li>Expressions are a natural side-effect and useful construct when all functions are pure and return a value</li>
+                        <li>Statements are more common when only the side effect of the code is desired</li>
+                    </ul>
+                    <aside class="notes">First example is effectively dead code, because it is a statement that has no side effects</aside>
+                </section>
+                <section>
+                    <h3>Key Tools and Common Patterns</h3>
+                    <ul>
+                        <li>
+                            Recursion
+                            <ul><li>Tail Recursion</li></ul>
+                        </li>
+                        <li>
+                            First-class functions
+                            <ul>
+                                <li>Higher-order functions</li>
+                                <li>Partial application (Currying)</li>
+                            </ul>
+                        </li>
+                        <li>Strict vs lazy evaluation</li>
+                        <!-- <li>Type systems</li> -->
+                        <li>Data structures</li>
+                    </ul>
+                    <aside class="notes">People will often think that this is what FP is</aside>
+                </section>
+                <section>
+                    <section>
+                        <h3>Recursion</h3>
+                        <ul>
+                            <li>A looping construct where a function calls itself</li>
+                            <li>Used to break down larger problems into small, incremental problems</li>
+                            <li>Doesn't require mutable state like a conventional <strong class="code-highlight">for</strong> loop</li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">// Calculate x!
+function factorial(x) {
+    if (x <= 1) {
+        return 1;
+    } else {
+        return x * factorial(x - 1);
     }
 }</code></pre>
-						Functional (Scala):
-						<pre><code class="scala code-small">def factorial(n: Int): Int = if (n > 1) factorial(n - 1) * n else 1
-
-// Bonus points: tail recursive
+                    </section>
+                    <section>
+                        <h3>Pitfalls of Recursion</h3>
+                        <ul>
+                            <li>
+                                Infinite loops
+                                <ul>
+                                    <li>Requires a base case</li>
+                                    <li>"Pete and Repeat were walking up a wall. Pete fell down; who was left?" "Repeat." "Pete and Repeat were walking up a wall..."</li>
+                                </ul>
+                            </li>
+                            <li>Stack overflows</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Tail Recursion</h3>
+                        <ul>
+                            <li>When the recursive call is the very last line of the function</li>
+                            <li>Does not add new stack frames; no stack overflow</li>
+                            <li>
+                                Compiler optimization
+                                <ul><li>Resulting machine code implemented very similar to a <strong class="code-highlight">while</strong> loop</li></ul>
+                            </li>
+                        </ul>
+                        <p>Example (Scala):</p>
+                        <pre><code class="scala code-small">// Calculate x!
 @tailrec
-def factorial2(n: Int, acc: Int = 1): Int = {
-  if (n > 1)
-    factorial2(n - 1, acc * n)
-  else
-    acc
-}</code></pre>
-					</section>
-					<section>
-						<h4>Lazy vs Strict Evaluation</h4>
-						Strict evaluation (Scala):
-						<pre><code class="scala code-small">println(Seq(1, 2, 3 / 0, 4, 5).length) // java.lang.ArithmeticException: / by zero</code></pre>
-						Lazy evaulation (Haskell):
-						<pre><code class="haskell code-small">print (length [1, 2, 3 / 0, 4, 5]) -- 5</code></pre>
-					</section>
-				</section>
-				<section>
-					<h3>Ways to Utilize Functional Programming</h3>
-				</section>
-				<section>
-					<section>
-						<h3>Immutability</h3>
-						<ul>
-							<li>Use <strong class="code-highlight">val</strong> instead of <strong class="code-highlight">var</strong></li>
-							<li>
-								Use <strong class="code-highlight">scala.collection.immutable._</strong> instead of <strong class="code-highlight">scala.collection.mutable._</strong>
-								<ul><li>Luckily, this is the default in Scala :)</li></ul>
-							</li>
-						</ul>
-					</section>
-					<section>
-						<p>When you must use mutability, avoid double mutability</p>
-						<pre><code class="scala code-small">// This is probably not what you want
-var doublyMutableList = scala.collection.mutable.List()</code></pre>
-					</section>
-				</section>
-				<section>
-					<section>
-						<h3>Functional Data Structures</h3>
-						<p>Scala has an elaborate array of <strong class="word-highlight">data structures</strong> in its standard library. To promote functional programming practices, all data structures expose a consistent API providing <strong class="word-highlight">higher-order functions</strong> to create altered <strong class="word-highlight">copies</strong> of the data structure or perform useful operations in an <strong class="word-highlight">immutable</strong> way.</p>
-					</section>
-					<section>
-						<h3>Common Data Structures</h3>
-						<ul>
-							<li>Option[A]</li>
-							<li>Seq[A]/List[A]</li>
-							<li>Map[A, B]</li>
-							<li>Set[A]</li>
-							<li>Future[A]</li>
-						</ul>
-					</section>
-					<section>
-						<h3>.foreach()</h3>
-						<p>Calls the given side-effecting function once for every item</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3)
-val noResult: Unit = numbers.foreach { i =>
-  println("Number " + i)
-}
-// Number 1
-// Number 2
-// Number 3</code></pre>
-					</section>
-					<section>
-						<h3>.map()</h3>
-						<p>Calls the given function once per item to modify every item</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3)
-val words: List[String] = numbers.map { i =>
-  "Number " + i
-}
-// List(Number 1, Number 2, Number 3)</code></pre>
-					</section>
-					<section>
-						<h3>.filter()</h3>
-						<p>Removes all items from the collection for which the given function returns false</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3, 4, 5)
-val odds: List[Int] = numbers.filter { i => i % 2 == 1 }
-// List(1, 3, 5)</code></pre>
-					</section>
-					<section>
-						<h3>.flatten</h3>
-						<p>Turns a nested data structure into a single structure with only raw values inside</p>
-						<pre><code class="scala code-small">val maybeMaybeInt: Option[Option[Int]] = None
-maybeMaybeInt.flatten // None
-
-val maybeMaybeInt2: Option[Option[Int]] = Some(None)
-maybeMaybeInt2.flatten // None
-
-val maybeMaybeInt3: Option[Option[Int]] = Some(Some(5))
-maybeMaybeInt3.flatten // Some(5)
-
-val numbers: List[List[Int]] = List(List(1, 2), List(3, 4, 5), List(), List(6))
-numbers.flatten // List(1, 2, 3, 4, 5, 6)</code></pre>
-					</section>
-					<section>
-						<h3>.flatMap()</h3>
-						<p>Calls the function once per item. The function must return a data structure. Calls <strong class="code-highlight">.flatten</strong> at the end.</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(40, 18, 35)
-
-numbers.map { i => getPrimeFactors(i) }
-// List(List(2, 2, 2, 5), List(2, 3, 3), List(5, 7))
-
-numbers.flatMap { i => getPrimeFactors(i) }
-// List(2, 2, 2, 5, 2, 3, 3, 5, 7)</code></pre>
-					</section>
-					<section>
-						<h3>.fold()</h3>
-						<p>The most <strong class="word-highlight">generic</strong> and <strong class="word-highlight">powerful</strong> function of this type. Takes a default value and a function that takes an <strong class="word-highlight">(accumulator, next value)</strong> tuple and returns a <strong class="word-highlight">new accumulator</strong>. All previous functions can be written using <strong class="code-highlight">.fold()</strong>.</p>
-						<pre><code class="scala code-small">def sum(numbers: List[Int]): Int = numbers.fold(0) { case (currentSum, next) =>
-  currentSum + next
-}
-
-sum(List(1, 2, 3, 4, 5)) // 15
-sum(List(1, 1, 2, 3, 5, 8)) // 20</code></pre>
-					</section>
-				</section>
-				<section>
-					<section>
-						<h3>For-Comprehensions</h3>
-						<ul>
-							<li>Advanced Scala tool for deeply-nested functional operations</li>
-							<li>Entirely syntactic sugar</li>
-							<li>Much cleaner to read, less indentation</li>
-						</ul>
-					</section>
-					<section>
-						<p>Basic: Syntactic sugar for <strong class="code-highlight">.foreach()</strong>.</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3)
-for { i <- numbers } println("Number " + i)
-
-// Equivalent to:
-numbers.foreach { i =>
-  println("Number " + i)
-}</code></pre>
-					</section>
-					<section>
-						<p>Basic: Syntactic sugar for <strong class="code-highlight">.map()</strong>.</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3)
-val words: List[String] = for { i <- numbers } yield "Number " + i
-
-// Equivalent to:
-val words: List[String] = numbers.map { i =>
-  "Number " + i
-}</code></pre>
-					</section>
-					<section>
-						<p>Intermediate: Syntactic sugar for <strong class="code-highlight">.filter()</strong>.</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3, 4, 5)
-val odds: List[Int] = for { n <- numbers if n % 2 == 1 } yield n
-// List(1, 3, 5)
-
-// Equivalent to:
-val odds: List[Int] = numbers.filter { n => n % 2 == 1 }</code></pre>
-					</section>
-					<section>
-						<p>Intermediate: Syntactic sugar for <strong class="code-highlight">.flatMap()</strong>.</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(1, 2, 3)
-val letters: List[String] = List("A", "B", "C")
-val combos: List[String] = for { n <- numbers; l <- letters } yield n + l
-// List(1A, 1B, 1C, 2A, 2B, 2C, 3A, 3B, 3C)
-
-// Equivalent to:
-val combos: List[String] = numbers.flatMap { n =>
-  letters.map { l =>
-    n + l
-  }
-}</code></pre>
-					</section>
-					<section>
-						<p>Advanced: Combinations of all of the above!</p>
-						<pre><code class="scala code-small">val numbers: List[Int] = List(40, 18, 35)
-val letters: List[String] = List("A", "B", "C")
-
-val suggestions: List[String] = for {
-  composite <- numbers
-  prime <- getPrimeFactors(composite) if (prime % 2 == 1)
-  letter <- letters
-} yield {
-  "How about room " + letter + prime + "?"
-}
-
-// Equivalent to:
-val suggestions: List[String] = numbers.flatMap { composite =>
-  getPrimeFactors(composite)
-    .filter { prime => prime % 2 == 1 }
-    .flatMap { prime =>
-      letters.map { letter =>
-        "How about room " + letter + prime + "?"
-      }
+def factorial(x: Int, accumulator: Int = 1): Int = {
+    if (x <= 1) {
+        accumulator
+    } else {
+        // Multiplication happens before function call; function call is in tail position
+        factorial(x - 1, accumulator * x)
     }
 }</code></pre>
-					</section>
-				</section>
-				<section>
-					<h3>Hands-On Examples</h3>
-				</section>
-				<section>
-					<section>
-						<p>1) Re-write this code in a functional way</p>
-						<pre><code class="scala code-small">case class User(id: Long, name: String)
-def getUserFromServer(userId: Long): Option[User] = {
-  if (userId > 100000L) Some(User(userId, s"test-$userId")) else None
-}
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>First-Class Functions</h3>
+                        <ul>
+                            <li>Functions as a data type like <strong class="code-highlight">int</strong> or <strong class="code-highlight">string</strong></li>
+                            <li>Can be passed as parameters or returned from a computation</li>
+                        </ul>
+                        Example (JavaScript):
+                        <pre><code class="javascript code-small">var myFunction = function(x) { /* something awesome */ };</code></pre>
+                    </section>
+                    <section>
+                        <h3>Higher-Order Functions</h3>
+                        <p>Functions that take a function as a parameter</p>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">var isEven = function(x) { return x % 2 == 0; };
 
-val userIds = List(4503L, 100102L, 355129L)
-var userIdOpt: Option[Long] = None
-for (i <- 0 until userIds.length) {
-  userIdOpt = userIds.get(i)
-  if (userIdOpt.isDefined) {
-    val user: Option[User] = getUserFromServer(userIdOpt.get)
-    println(s"Found user: $user")
-  }
-}
+var evens = [1, 2, 3, 4, 5].filter(isEven);
+console.log(evens); // [2, 4]</code></pre>
+                        <p class="fragment"><strong class="code-highlight">Array.filter()</strong> is a higher-order function</p>
+                    </section>
+                    <section>
+                        <h3>Partial Application (Currying)</h3>
+                        <p>A function that takes part of its parameters and returns another function that takes the rest of the parameters and performs the computation</p>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">// Normal function
+function add(x, y) { return x + y; }
 
-// Should print:
-// Found user: User(100102, test-100102)
-// Found user: User(355129, test-355129)</code></pre>
-						<small>Next: Hints</small>
-					</section>
-					<section>
-						<h3>Hints</h3>
-						<ul><li>Use <strong class="code-highlight">.flatMap()</strong> and <strong class="code-highlight">.foreach()</strong></li></ul>
-						<pre><code class="scala code-small">case class User(id: Long, name: String)
-def getUserFromServer(userId: Long): Option[User] = {
-  if (userId > 100000L) Some(User(userId, s"test-$userId")) else None
+// Curried function
+function partialAdd(x) { return function(y) { return x + y; }; }
+
+var plusTwo = partialAdd(2);
+plusTwo(2); // 4
+plusTwo(5); // 7
+
+partialAdd(5)(11); // 16</code></pre>
+                    <aside class="notes">Partially-applied functions keep a reference to the variables in the outer scope (closure)</aside>
+                    </section>
+                </section>
+                <section>
+                    <h4>Strict vs Lazy Evaluation</h4>
+                    <ul>
+                        <li>Lazy: wait as long as possible to calculate a result</li>
+                        <li>
+                            Results can be cached to avoid needless re-calculating
+                            <ul><li>Assumes pure functions</li></ul>
+                        </li>
+                        <li>Runtime performance in exchange for difficulty in reasoning about order of computation</li>
+                        <li>Allows for data structures of potentially infinite size</li>
+                    </ul>
+                    <p>Strict evaluation (Scala):</p>
+                    <pre><code class="scala code-small">println(List(1, 2, 3 / 0, 4, 5).length) // java.lang.ArithmeticException: / by zero</code></pre>
+                    Lazy evaulation (Haskell):
+                    <pre><code class="haskell code-small">print (length [1, 2, 3 / 0, 4, 5]) -- 5</code></pre>
+                </section>
+                <!-- <section>
+                    <h3>Type Systems</h3>
+                    <ul>
+                        <li>
+                            Types: Compile-time verification of some of the code's behavior
+                            <ul>Example: <strong class="code-highlight">.length()</strong> makes sense for a <strong class="code-highlight">string</strong> or <strong class="code-highlight">array</strong> but would fail at runtime for an <strong class="code-highlight">int</strong></ul>
+                        </li>
+                        
+                    </ul>
+                </section> -->
+                <section>
+                    <section>
+                        <h3>Functional Data Structures</h3>
+                        <ul>
+                            <li>Conceptually similar to imperative data structures in other languages</li>
+                            <li>
+                                Offer a different API to take advantage of functional programming practices
+                                <ul>
+                                    <li>Immutability</li>
+                                    <li>Higher-order functions</li>
+                                    <li>Recursion</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Common functional data structures
+                                <ul>
+                                    <li>List</li>
+                                    <li>Set</li>
+                                    <li>Map</li>
+                                    <li>Option</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <aside class="notes">Array is noticably absent from the list. While you can make arrays with functional APIs, it is a little strange since arrays are fundamentally mutable.</aside>
+                    </section>
+                    <section>
+                        <h3>Common Operations on Functional Data Structures</h3>
+                        <ul>
+                            <li>.foreach()</li>
+                            <li>.map()</li>
+                            <li>.flatten</li>
+                            <li>.flatMap()</li>
+                            <li>.filter()</li>
+                            <li>.find()</li>
+                            <li>.some()/.exists()</li>
+                            <li>.each()/.forall()</li>
+                            <li>.reduce()/.fold()</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>.foreach()</h3>
+                        <ul>
+                            <li>Very common, even in imperative languages</li>
+                            <li>
+                                Calls a function on every element in the data structure
+                                <ul>
+                                    <li>Returns nothing; function should
+                                    have side effects</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p>Example (Java):</p>
+                        <pre><code class="java code-small">for (Student student : students) {
+    System.out.println("Processing student " + student.name);
+    // Do stuff with student
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>.map()</h3>
+                        <ul>
+                            <li>Conceptually similar to <strong class="code-highlight">.foreach()</strong></li>
+                            <li>Calls a function on every element</li>
+                            <li>Creates a new data structure with results</li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">[1, 2, 3, 4, 5].map((x) => x + 3); // [4, 5, 6, 7, 8]
 
 
-val userIds = List(4503L, 100102L, 355129L)
-var userIdOpt: Option[Long] = None
-for (i <- 0 until userIds.length) {
-  userIdOpt = userIds.get(i)
-  if (userIdOpt.isDefined) {
-    val user: Option[User] = getUserFromServer(userIdOpt.get)
-    println(s"Found user: $user")
-  }
-}
+var names = students.map((student) => student.name);</code></pre>
+                    <aside class="notes">Second example shows transforming the type</aside>
+                    </section>
+                    <section>
+                        <h3>.flatten</h3>
+                        <ul>
+                            <li>Sometimes <strong class="code-highlight">.map()</strong> returns an entire data structure</li>
+                            <li>Concatenates all values of the inner data structures and returns an outer data structure</li>
+                        </ul>
+                        <p>Example (Scala):</p>
+                        <pre><code class="scala code-small">case class Student(name: String, classes: List[String])
 
-// Should print:
-// Found user: User(100102, test-100102)
-// Found user: User(355129, test-355129)</code></pre>
-						<small>Next: Solution</small>
-					</section>
-					<section>
-						<h3>Solution</h3>
-						<pre><code class="scala code-small">case class User(id: Long, name: String)
-def getUserFromServer(userId: Long): Option[User] = {
-  if (userId > 100000L) Some(User(userId, s"test-$userId")) else None
+val students = List(
+    Student("Sally", List("CS101", "BIO310")),
+    Student("George", List()),
+    Student("Bradly", List("CS101")),
+    Student("Carol", List("TECH210", "CS320", "PHYS101"))
+)
 
+students.map(student => student.classes) // List[List[String]]
+    .flatten // List[String]
 
+// List(CS101, BIO310, CS101, TECH210, CS320, PHYS101)</code></pre>
+                    </section>
+                    <section>
+                        <h3>.flatMap()</h3>
+                        <p>Combines <strong class="code-highlight">.map()</strong> and <strong class="code-highlight">.flatten</strong></p>
+                        <p>Example (Scala):</p>
+                        <pre><code class="scala code-small">case class Student(name: String, classes: List[String])
 
-val userIds = List(4503L, 100102L, 35512L)
-userIds.flatMap(getUserFromServer)
-  .foreach(user => println(s"Found user: $user"))
+val students = List(
+    Student("Sally", List("CS101", "BIO310")),
+    Student("George", List()),
+    Student("Bradly", List("CS101")),
+    Student("Carol", List("TECH210", "CS320", "PHYS101"))
+)
 
-// Should print:
-// Found user: User(100102, test-100102)
-// Found user: User(355129, test-355129)</code></pre>
-					</section>
-				</section>
-				<section>
-					<section>
-						<p>2) Re-write this code using tail recursion</p>
-						<pre><code class="scala code-small">def gcd(a: Int, b: Int): Int = {
-  var x = a
-  var y = b
-  var z = 0
+students.flatMap(student => student.classes) // List[String]
 
-  while (y != 0) {
-    z = y
-    y = x % y
-    x = z
-  }
+// List(CS101, BIO310, CS101, TECH210, CS320, PHYS101)</code></pre>
+                    </section>
+                    <section>
+                        <h3>.filter()</h3>
+                        <ul>
+                            <li>Takes a predicate function</li>
+                            <li>Returns a copy of the data structure with every element that returns <strong class="code-highlight">true</strong></li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].filter(isEven); // [2, 4, 6, 8]</code></pre>
+                    </section>
+                    <section>
+                        <h3>.find()</h3>
+                        <ul>
+                            <li>Takes a predicate function</li>
+                            <li>Returns the first element that returns <strong class="code-highlight">true</strong></li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].find(isEven); // 2, would be undefined if nonexistent</code></pre>
+                        <p>Example (Scala):</p>
+                        <pre><code class="scala code-small">val result: Option[Int] = List(1, 2, 3, 4, 5, 6, 7, 8).find(isEven)
+// Some(2), would be None if nonexistent</code></pre>
+                    </section>
+                    <section>
+                        <h3>.some()/.exists()</h3>
+                        <ul>
+                            <li>Takes a predicate function</li>
+                            <li>Returns <strong class="code-highlight">true</strong> if <u>any</u> element returns <strong class="code-highlight">true</strong></li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].some(isEven); // true
+[].some(isEven); // false</code></pre>
+                    </section>
+                    <section>
+                        <h3>.every()/.forall()</h3>
+                        <ul>
+                            <li>Takes a predicate function</li>
+                            <li>
+                                Returns <strong class="code-highlight">true</strong> if <u>every</u> element returns <strong class="code-highlight">true</strong>
+                            </li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].every(isEven); // false
+[].every(isEven); // true</code></pre>
+                    </section>
+                    <section>
+                        <h3>.reduce()/.fold()</h3>
+                        <ul>
+                            <li>The most powerful functional operation for data structures</li>
+                            <li>Every previous operation can be implemented using <strong class="code-highlight">.reduce()</strong></li>
+                            <li>
+                                Takes:
+                                <ul>
+                                    <li>The starting value</li>
+                                    <li>A function that takes the current accumulated value and the next value in the list</li>
+                                </ul>
+                            </li>
+                            <li>Returns the final accumulated value</li>
+                        </ul>
+                        <p>Example (JavaScript):</p>
+                        <pre><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].reduce(
+    (acc, x) => acc || isEven(x),
+    false
+); // `.some()`</code></pre>
+                    </section>
+                    <section>
+                        <h3>Other <strong class="code-highlight">.reduce()</strong> examples</h3>
+                        <pre class="fragment"><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].reduce(
+    (acc, x) => acc + x,
+    0
+);</code></pre>
 
-  x
-}
+<pre class="fragment"><code class="javascript code-small">[1, 2, 3, 4, 5, 6, 7, 8].reduce(
+    (acc, x) => acc.concat(x + 3),
+    []
+);</code></pre>
 
-println(gcd(10, 15)) // 5
-println(gcd(17, 35)) // 1
-println(gcd(100, 10)) // 10</code></pre>
-						<small>Next: Hints</small>
-					</section>
-					<section>
-						<h3>Hints</h3>
-						<ul>
-							<li>Identify the base case</li>
-							<li>You don't need a temporary variable</li>
-							<li>Annotate your method with <strong class="code-highlight">@scala.annotation.tailrec</strong></li>
-						</ul>
-						<pre><code class="scala code-small">def gcd(a: Int, b: Int): Int = {
-  var x = a
-  var y = b
-  var z = 0
+<pre class="fragment"><code class="javascript code-small">[[1, 2], [3], [4, 5, 6], [7], [], [8]].reduce(
+    (acc, x) => acc.concat(x),
+    []
+);</code></pre>
+<p class="fragment"><strong class="code-highlight">.reduce()</strong> is powerful but complex; prefer more specialized functions</p>
+                    </section>
+                </section>
+                <section>
+                    <h3>Summary</h3>
+                    <ul>
+                        <li>Functional Programming is about <strong class="code-highlight">Pure Functions</strong> and <strong class="code-highlight">Immutability</strong></li>
+                        <li>
+                            FP principles make code:
+                            <ul>
+                                <li>Easier to reason about</li>
+                                <li>Safer to refactoring</li>
+                                <li>Safer to parallelize</li>
+                            </ul>
+                        </li>
+                        <li>FP principles come with tools that make the principles nicer to work with</li>
+                        <li>FP principles can be applied to imperative languages</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Questions?</h2>
+                </section>
+            </div>
+        </div>
 
-  while (y != 0) {
-    z = y
-    y = x % y
-    x = z
-  }
+        <script src="../reveal/lib/js/head.min.js"></script>
+        <script src="../reveal/js/reveal.js"></script>
 
-  x
-}
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
 
-println(gcd(10, 15)) // 5
-println(gcd(17, 35)) // 1
-println(gcd(100, 10)) // 10</code></pre>
-						<small>Next: Solution</small>
-					</section>
-					<section>
-						<h3>Solution</h3>
-						<pre><code class="scala code-small">@scala.annotation.tailrec
-def gcd(a: Int, b: Int): Int = {
-  if (b != 0) {
-    gcd(b, a % b)
-  } else {
-    a
-  }
-}
-
-println(gcd(10, 15)) // 5
-println(gcd(17, 35)) // 1
-println(gcd(100, 10)) // 10</code></pre>
-					</section>
-				</section>
-				<section>
-					<section>
-						<p>3) Implement <strong class="code-highlight">.flatten</strong> using <strong class="code-highlight">.fold()</strong></p>
-						<pre><code class="scala code-small">def myFlatten() = ???
-
-println(myFlatten(List(List(1, 2), List(3, 5)))) // List(1, 2, 3, 5)
-println(myFlatten(List(List(), List(5), List(3, 1)))) // List(5, 3, 1)</code></pre>
-						<small>Next: Hints</small>
-					</section>
-					<section>
-						<h3>Hints</h3>
-						<ul><li><strong class="code-highlight">List</strong> has a <strong class="code-highlight">++</strong> method for concatenating two lists</li></ul>
-						<pre><code class="scala code-small">def myFlatten[A](xs: List[List[A]]): List[A] = ???
-
-println(myFlatten(List(List(1, 2), List(3, 5)))) // List(1, 2, 3, 5)
-println(myFlatten(List(List(), List(5), List(3, 1)))) // List(5, 3, 1)</code></pre>
-						<small>Next: Solution</small>
-					</section>
-					<section>
-						<h3>Solution</h3>
-						<pre><code class="scala code-small">
-def myFlatten[A](xs: List[List[A]]): List[A] = xs.fold(Nil) { case (acc, list) =>
-  acc ++ list
-}
-
-println(myFlatten(List(List(1, 2), List(3, 5)))) // List(1, 2, 3, 5)
-println(myFlatten(List(List(), List(5), List(3, 1)))) // List(5, 3, 1)</code></pre>
-					</section>
-				</section>
-			</div>
-		</div>
-
-		<script src="../reveal/lib/js/head.min.js"></script>
-		<script src="../reveal/js/reveal.js"></script>
-
-		<script>
-			// More info https://github.com/hakimel/reveal.js#configuration
-			Reveal.initialize({
-				history: true,
-
-				// More info https://github.com/hakimel/reveal.js#dependencies
-				dependencies: [
-					{ src: '../reveal/plugin/markdown/marked.js' },
-					{ src: '../reveal/plugin/markdown/markdown.js' },
-					{ src: '../reveal/plugin/notes/notes.js', async: true },
-					{ src: '../reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: '../reveal/plugin/markdown/marked.js' },
+                    { src: '../reveal/plugin/markdown/markdown.js' },
+                    { src: '../reveal/plugin/notes/notes.js', async: true },
+                    { src: '../reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
 </html>
 <pre><code class="scala code-small">
