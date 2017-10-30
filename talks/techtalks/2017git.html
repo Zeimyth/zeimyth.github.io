@@ -1,0 +1,528 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Git Gud - 2017</title>
+
+        <link rel="stylesheet" href="../reveal/css/reveal.css">
+
+        <!-- Primary presenation theme -->
+        <!-- <link rel="stylesheet" href="../reveal/css/theme/league.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/css/theme/serif.css"> <!-- light -->
+
+        <!-- Syntax highlighting theme -->
+        <!-- <link rel="stylesheet" href="../reveal/lib/css/zenburn.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/lib/css/tomorrow.min.css"> <!-- light -->
+
+        <style>
+            .reveal pre code {
+                max-height: 500px;
+            }
+
+            .code-highlight {
+                color: #77e;
+            }
+
+            code.code-small {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            p.text-small {
+                font-size: 16pt;
+                line-height: 18pt;
+            }
+
+            p.subtext {
+              font-style: italic;
+            }
+
+            .word-highlight {
+                /*color: lemonchiffon;*/ /* dark */
+                color: crimson; /*light*/
+            }
+
+            .sub-title .author {
+              font-size: 150%;
+            }
+
+            .sub-title a {
+              font-size: 50%;
+            }
+
+            .sub-title p:not(.author) {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .sub-title .job-title {
+              margin-bottom: 30px;
+            }
+
+            .image p {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .reveal ul ul li {
+              font-size: 75%;
+            }
+        </style>
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal/css/print/pdf.css' : '../reveal/css/print/paper.css';
+            document.getElementsByTagName('head')[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+      <div class="reveal">
+        <div class="slides">
+          <section>
+            <h2>Git Gud</h2>
+            <h3>Terminal Tools and Techniques for Git</h3>
+            <div class="sub-title">
+              <p class="author">Stephen Rollins</p>
+              <p>08-08-17</p>
+              <a href="http://zeimyth.github.io/talks/techtalks/2017git.html">http://zeimyth.github.io/talks/techtalks/2017git.html</a>
+            </div>
+            <aside class="notes">
+              <p>Please feel free to ask questions or make comments throughout the presentation</p>
+              <p>Makes for a more effective learning experience for all</p>
+            </aside>
+          </section>
+          <section>
+            <img src="git/git_2x.png" srcset="git/git_2x.png 2x">
+            <p class="text-small subtext">
+              If that doesn't fix it, git.txt contains the phone number of a friend of mine who understands git. Just
+              wait through a few minutes of 'It's really pretty simple, just think of branches as...' and eventually
+              you'll learn the commands that will fix everything.
+            </p>
+          </section>
+          <section>
+            <p>Everything you want to do with Git, you can do from the terminal</p>
+          </section>
+          <section>
+            <h3>PSA: Merge vs Rebase</h3>
+            <div style="width: 640px; height: 480px; margin: 10px; position: relative;"><iframe allowfullscreen frameborder="0" style="width:640px; height:480px" src="https://www.lucidchart.com/documents/embeddedchart/5a95b406-09ac-4df9-a9f0-14171697f303" id="hPklO_VCXG-4"></iframe></div>
+          </section>
+          <section>
+            <section>
+              <h3>git status</h3>
+              <ul>
+                <li>
+                  Shows basic info of current state of local git repo
+                  <ul>
+                    <li>Current branch</li>
+                    <li>Modified files</li>
+                    <li>Files pending commit</li>
+                    <li>Files not tracked by git</li>
+                    <li>Files in conflict</li>
+                  </ul>
+                </li>
+                <li>Use when you need a quick overview of your work</li>
+              </ul>
+              <aside class="notes">
+                <ul>
+                  <li>Displays relative paths</li>
+                </ul>
+              </aside>
+            </section>
+            <!-- <section> -->
+              <!-- <h3>Anatomy of git status</h3> -->
+              <!-- git stash example with cache, modified (/new/deleted), untracked files -->
+              <!-- TODO -->
+            <!-- </section> -->
+          </section>
+          <section>
+            <h3>PSA: Highlight-Pasting</h3>
+            <ul>
+              <li>Linux has a separate "clipboard" for highlighted text</li>
+              <li>Paste with middle-mouse button</li>
+              <li>Use in conjuction with <strong class="code-highlight">git status</strong> to make some Git commands quicker to use</li>
+            </ul>
+            <aside class="notes">Will be very useful as you use the other commands we discuss</aside>
+          </section>
+          <section>
+            <section>
+              <h3>git diff</h3>
+              <ul>
+                <li>View individual changed lines, one file at a time</li>
+                <li>Can view changes to only certain files</li>
+                <li>Can show staged changes with <strong class="code-highlight">--cached</strong></li>
+              </ul>
+            </section>
+            <!-- <section> -->
+              <!-- <h3>Anatomy of git diff</h3> -->
+              <!-- git diff example with two files, lines added, changed, and removed -->
+              <!-- TODO -->
+            <!-- </section> -->
+          </section>
+          <section>
+            <h3>Color-Coded Output</h3>
+            <ul>
+              <li>Prevent command output from feeling like wall of text</li>
+              <li>Specific colors can be configured using standard git config</li>
+            </ul>
+            <pre><code class="hljs code-small">git config --global color.ui auto</code></pre>
+            <aside class="notes">May be on by default now?</aside>
+          </section>
+          <section>
+            <section>
+              <h3>git add</h3>
+              <ul>
+                <li>Used to mark all changes to a file to be included with the next commit</li>
+              </ul>
+              <aside class="notes">Marking a file is called "staging" it</aside>
+            </section>
+            <section>
+              <h3>Patch add: git add -p</h3>
+              <ul>
+                <li>Normal <strong class="code-highlight">git add</strong> is all-or-nothing for a file</li>
+                <li>Patch <strong class="code-highlight">add</strong> is interactive, allows adding some changes and skipping others</li>
+                <li>Walks through every change in every modified file</li>
+                <li>Feels like a <strong class="code-highlight">git diff</strong> but asks to accept every change</li>
+              </ul>
+              <pre><code class="diff code-small">$ git add -p
+diff --git a/cake/app/webroot/css/css-common/components/_headers.less b/cake/app/webroot/css/css-common/components/_headers.less
+index 768df59fdc7..4251245b535 100644
+--- a/cake/app/webroot/css/css-common/components/_headers.less
++++ b/cake/app/webroot/css/css-common/components/_headers.less
+@@ -57,7 +57,7 @@
+ 
+         .tab {
+             float: left;
+-            border-left: #707e8d solid 1px;
++            border-left: @blue-steel-2 solid 1px;
+             height: 28px;
+             padding: 0 14px 0 28px;
+             margin-right: 28px;
+Stage this hunk [y,n,q,a,d,/,e,?]? </code></pre>
+            </section>
+            <section>
+              <h3>Patch basics: y/n</h3>
+              <ul>
+                <li>Basic accept/deny the given patch</li>
+                <li>
+                  Say "no" for:
+                  <ul>
+                    <li>Comments/debugging changes</li>
+                    <li>Changes that belong in multiple commits</li>
+                    <li>Incomplete or incorrect changes (see <strong class="code-highlight">edit</strong>)</li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+            <section>
+              <h3>Patch intermediate: s</h3>
+              <ul>
+                <li><strong class="code-highlight">git add -p</strong> groups changes separated by less than 3 unchanged lines into a single chunk</li>
+                <li>
+                  Splits the current chunk into multiple chunks
+                  <ul><li>Each new chunk can be processed indpenedently</li></ul>
+                </li>
+                <li>Splits on unchanged lines</li>
+                <li>Not useful for unrelated changes that have no unchanged lines between them</li>
+              </ul>
+              <!-- gif? -->
+              <!-- TODO -->
+            </section>
+            <section>
+              <h3>Patch advanced: e</h3>
+              <ul>
+                <li>Edits the current chunk in Git's configured editor of choice</li>
+                <li>Most flexable; lets you make any changes to the diff</li>
+                <li>
+                  Changes must follow Git diff syntax
+                  <ul>
+                    <li>Removed lines start with -</li>
+                    <li>Added lines start with +</li>
+                    <li>Unchanged lines start with empty space</li>
+                    <li>Git will complain if your changes are in conflict with original code</li>
+                  </ul>
+                </li>
+                <li>Use to split adjacent but unrelated changes or to remove overlooked debugging statements</li>
+              </ul>
+            </section>
+          </section>
+          <section>
+            <h3>git commit</h3>
+            <ul>
+              <li>Turns all staged changes into a new commit</li>
+              <li>Opens the default editor to provide commit message</li>
+              <li>
+                <strong class="code-highlight">git commit -m</strong>
+                <ul><li>Takes the commit message as the next argument</li></ul>
+              </li>
+              <li>
+                <strong class="code-highlight">git commit -a</strong>
+                <ul><li>Adds all unstaged changes and then commits (use sparingly)</li></ul>
+              </li>
+              <li>
+                <strong class="code-highlight">git commit --amend</strong>
+                <ul>
+                  <li>Adds staged changes into most recent commit</li>
+                  <li>Also used to reword incorrect commit message</li>
+                </ul>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <section>
+              <h3>git stash</h3>
+              <ul>
+                <li>Creates a pseudo-commit of your changes and adds it to a stack for later access</li>
+                <li>
+                  Useful for:
+                  <ul>
+                    <li>Pausing work and switching branches</li>
+                    <li>Verifying state of latest commit without your changes</li>
+                    <li>Protecting changes from <strong class="code-highlight">git merge</strong> or <strong class="code-highlight">git rebase</strong></li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+            <section>
+              <h3>git stash push</h3>
+              <ul>
+                <li>Default stash behavior when <strong class="code-highlight">git stash</strong> is called</li>
+                <li>
+                  <strong class="code-highlight">git stash push -u</strong>
+                  <ul>
+                    <li>Stashes untracked files as well</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git stash push -m (message)</strong>
+                  <ul>
+                    <li>Saves stash with explanatory message (highly recommended)</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git stash push -- (files)</strong>
+                  <ul>
+                    <li>Stashes only specified files</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git stash push -p</strong>
+                  <ul>
+                    <li>Like <strong class="code-highlight">git add -p</strong></li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+            <section>
+              <h3>git stash list</h3>
+              <ul>
+                <li>View stack of stashes</li>
+              </ul>
+              <pre><code class="hljs code-small">$ git stash list
+stash@{0}: WIP on REV-3115: a168fae0dfa REV-3115 - Use different language picker AB test for demo (unauthenticated) user
+stash@{1}: On PROD-840: Interrupted for release stuff
+stash@{2}: WIP on REV-3029: 433f01b8b3b messaging
+stash@{3}: WIP on REV-3009-i18n: 1b538f1f9d2 REV-3009 - I18n
+stash@{4}: WIP on stephen-fix-selenium: e8c043dfe48 Make SwitchingProductTo*WelcomeTest pass
+stash@{5}: WIP on REV-2920: 24b7eb600d7 Fix doc role caching
+stash@{6}: WIP on REV-2831: d1064da835d Merge pull request #16631 in LUCID/main from PROD-764-exceptions-while-generating-sample-shapes to master</code></pre>
+            </section>
+            <section>
+              <h3>Other git stash Commands</h3>
+              <ul>
+                <li>
+                  <strong class="code-highlight">git stash pop</strong>/<strong class="code-highlight">git stash apply</strong>
+                  <ul>
+                    <li>Applies changes in stash to current working state</li>
+                    <li><strong class="code-highlight">pop</strong> removes stash if successful, fails to apply if other changes exist</li>
+                    <li><strong class="code-highlight">apply</strong> won't remove stash</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git stash drop</strong>
+                  <ul>
+                    <li>Removes topmost stash from stack (use with care)</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git stash show</strong>
+                  <ul>
+                    <li>Display changed files in topmost stash</li>
+                    <li><strong class="code-highlight">git stash show -p</strong> displays diff</li>
+                  </ul>
+                </li>
+                <li>
+                  All above commands accept a &lt;stash&gt; argument
+                  <ul>
+                    <li><strong class="code-highlight">git stash drop stash@{2}</strong></li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+          </section>
+          <section>
+            <h3>Other File-Level Commands</h3>
+            <ul>
+              <li>
+                <strong class="code-highlight">git checkout -- (paths)</strong>
+                <ul>
+                  <li>Restore specified files to unchanged state</li>
+                  <li>Will not affect staged changes</li>
+                </ul>
+              </li>
+              <li>
+                <strong class="code-highlight">git reset HEAD (paths)</strong>
+                <ul>
+                  <li>Unstage specified files</li>
+                  <li>Also stop tracking specified new (to Git) files</li>
+                </ul>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <section>
+              <h3>Branch-Level Commands</h3>
+            </section>
+            <section>
+              <h3>git fetch</h3>
+              <ul>
+                <li>Update local copy of upstream branches</li>
+                <li>Automatically ran by Git before <strong class="code-highlight">git push</strong>, <strong class="code-highlight">git pull</strong>, etc.</li>
+              </ul>
+            </section>
+            <section>
+              <h3>git pull</h3>
+              <ul>
+                <li>Update local branch with latest commits from upstream branch</li>
+                <li>
+                  Requires upstream branch to be associated with current branch
+                  <ul>
+                    <li><strong class="code-highlight">git pull &lt;remote&gt; &lt;branch&gt;</strong></li>
+                    <li><strong class="code-highlight">git branch --set-upstream-to=origin/&lt;branch&gt; &lt;branch&gt;</strong></li>
+                    <li>Association is automatic for existing upstream branches you check out</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git pull --ff-only</strong>
+                  <ul>
+                    <li>Only pulls if local branch has not diverged from upstream branch</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git pull --rebase</strong>
+                  <ul>
+                    <li>Updates local branch using rebase instead of merge</li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+            <section>
+              <h3>git push</h3>
+              <ul>
+                <li>Update upstream branch with latest commits from local branch</li>
+                <li>
+                  <strong class="code-highlight">git push -f</strong>
+                  <ul>
+                    <li>"Force Push"</li>
+                    <li>Forces upstream branch to exactly mirror local branch, even if histories don't match</li>
+                    <li>Destroys Git history; do not use on collaborating branches</li>
+                    <li>Generally necessary after rebase</li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+            <section>
+              <h3>git checkout</h3>
+              <ul>
+                <li>
+                  <strong class="code-highlight">git checkout (commit|branch)</strong>
+                  <ul>
+                    <li>Switches to an existing branch</li>
+                    <li>Creates local copy if branch didn't exist locally</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git checkout -b (name)</strong>
+                  <ul>
+                    <li>Creates new branch from the current working state</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git checkout -b (name) (branch)</strong>
+                  <ul>
+                    <li>Creates new branch that mirrors the given existing branch</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git checkout -D (name)</strong>
+                  <ul>
+                    <li>Deletes local copy of existing branch</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git checkout -B (name)</strong>
+                  <ul>
+                    <li>Resets existing branch to mirror the current working state</li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+            <section>
+              <h3>Other Branch-Level Commands</h3>
+              <ul>
+                <li>
+                  <strong class="code-highlight">git merge (branch)</strong>
+                  <ul>
+                    <li>Pulls in commits from the given branch using the merge strategy</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git rebase (branch)</strong>
+                  <ul>
+                    <li>Pulls in commits from the given branch using the rebase strategy</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong class="code-highlight">git cherry-pick (commit|branch)</strong>
+                  <ul>
+                    <li>Applies the given commit to your current branch</li>
+                    <li>When given a branch, applies the latest commit from that branch</li>
+                  </ul>
+                </li>
+              </ul>
+            </section>
+          </section>
+          <!-- git log -->
+          <!-- TODO -->
+
+          <!-- <aside class="notes"></aside> -->
+          <!-- <strong class="code-highlight"></strong> -->
+          <section>
+            <h2>Questions?</h2>
+          </section>
+        </div>
+      </div>
+
+      <script src="../reveal/lib/js/head.min.js"></script>
+      <script src="../reveal/js/reveal.js"></script>
+
+      <script>
+        // More info https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+          history: true,
+
+          // More info https://github.com/hakimel/reveal.js#dependencies
+          dependencies: [
+            { src: '../reveal/plugin/markdown/marked.js' },
+            { src: '../reveal/plugin/markdown/markdown.js' },
+            { src: '../reveal/plugin/notes/notes.js', async: true },
+            { src: '../reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+          ]
+        });
+      </script>
+    </body>
+</html>
