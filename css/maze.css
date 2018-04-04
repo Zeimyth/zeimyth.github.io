@@ -14,13 +14,62 @@ body {
 * Specific element rules
 */
 
-.menu {
-	text-align: center;
+.center-container {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
 }
 
-.menu span {
-	display: inline-block;
+/********************************************************************
+* Menu rules
+*/
+
+.menu {
+	position: relative;
+	left: -50%;
+	width: 640px;
+	font-size: x-large;
+	line-height: 1.25;
 }
+
+.menu h1 {
+	text-align: center
+}
+
+.menu .selected::before {
+	position: absolute;
+	left: -1em;
+	content: "> ";
+}
+
+.carousel {
+	display: flex;
+}
+
+.carousel-label, .carousel-item {
+	flex-grow: 1;
+}
+
+.carousel-item::before {
+	content: "< ";
+}
+
+.carousel-item.more-left::before {
+	content: "<< ";
+}
+
+.carousel-item::after {
+	content: " >";
+}
+
+.carousel-item.more-right::after {
+	content: " >>";
+}
+
+/********************************************************************
+* Gameplay rules
+*/
 
 .score-bar {
 	text-align: center;
