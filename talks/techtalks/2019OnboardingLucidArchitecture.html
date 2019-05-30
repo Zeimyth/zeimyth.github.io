@@ -1,0 +1,662 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Lucid Service Architecture Overview - Lucid Software 2019</title>
+
+        <link rel="stylesheet" href="../reveal/css/reveal.css">
+
+        <!-- Primary presenation theme -->
+        <!-- <link rel="stylesheet" href="../reveal/css/theme/league.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/css/theme/serif.css"> <!-- light -->
+
+        <!-- Syntax highlighting theme -->
+        <!-- <link rel="stylesheet" href="../reveal/lib/css/zenburn.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/lib/css/tomorrow.min.css"> <!-- light -->
+
+        <style>
+            .reveal pre code {
+                max-height: 500px;
+            }
+
+            .code-highlight {
+                color: #77e;
+            }
+
+            code.code-small {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            p.text-small {
+                font-size: 16pt;
+                line-height: 18pt;
+            }
+
+            .word-highlight {
+                /*color: lemonchiffon;*/ /* dark */
+                color: crimson; /*light*/
+            }
+
+            .sub-title .author {
+              font-size: 150%;
+            }
+
+            .sub-title a {
+              font-size: 50%;
+            }
+
+            .sub-title p:not(.author) {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .sub-title .job-title {
+              margin-bottom: 30px;
+            }
+
+            .image p {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .reveal ul ul li {
+              font-size: 75%;
+            }
+        </style>
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal/css/print/pdf.css' : '../reveal/css/print/paper.css';
+            document.getElementsByTagName('head')[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h2>Services Architecture</h2>
+                    <h3>Lucid Onboarding 2019</h3>
+                    <div class="sub-title">
+                      <p class="author">Stephen Rollins</p>
+                      <p>05-30-19</p>
+                      <a href="http://zeimyth.github.io/talks/techtalks/2019OnboardingLucidArchitecture.html">http://zeimyth.github.io/talks/techtalks/2019OnboardingLucidArchitecture.html</a>
+                    </div>
+                </section>
+                <section>
+                    <h3>Server Architecture</h3>
+                    <img src="architecture/Overview.png">
+                </section>
+                <section>
+                    <h3>Disclaimer</h3>
+                    <ul>
+                        <li>There is a lot going on in our server code!</li>
+                        <li>High-level overview</li>
+                        <li>Learn to read and recognize the patterns and understand the behavior at a high level</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Part 1: Controllers</h3>
+                    <h4>The Server's Frontend</h4>
+                </section>
+                <section>
+                    <h3>The Lifecycle of a Request</h3>
+                    <ol>
+                        <li>Initial Routing</li>
+                        <li>Headers Parsed</li>
+                        <li>Routed</li>
+                        <li>Authenticated</li>
+                        <li>Body Parsed</li>
+                        <li>General Processing</li>
+                        <li>Response Sent</li>
+                    </ol>
+                </section>
+                <section>
+                    <h3>Initial Routing</h3>
+                    <ul>
+                        <li><span class="word-highlight">HAProxy</span> routes to appropriate service</li>
+                        <li>
+                            Destination determined by <span class="code-highlight">domain</span> and <span class="code-highlight">path</span>
+                            <ul><li>Rarely, by <span class="code-highlight">headers</span> and <span class="code-highlight">query parameters</span></li></ul>
+                        </li>
+                        <li>main/routes/lucid-acls</li>
+                        <img src="architecture/ACLs.png">
+                    </ul>
+                </section>
+                <section>
+                    <h3>Headers Parsed</h3>
+                    <ul>
+                        <li><span class="word-highlight">Play Framework</span> automatically listens for requests</li>
+                        <li>Parses all incoming requests into <span class="code-highlight">RequestHeader</span> objects</li>
+                    </ul>
+                </section>
+                <section>
+                    <section>
+                        <h3>Routed</h3>
+                        <ul>
+                            <li><span class="word-highlight">Play Framework</span> routes based on <span class="code-highlight">path</span> and <span class="code-highlight">query string</span></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Play Routes Syntax</h3>
+                        <pre><code class="nohighlight code-small hljs">METHOD  PATH                                          CONTROLLER
+GET     /users/switchAccount                          com.lucidchart.web.controllers.Auth.switchAccountPage()
+GET     /users/settings                               com.lucidchart.web.controllers.UserPageLinks.userSettingsRedirect()
+POST    /users/splitDefunctTeam                       com.lucidchart.web.controllers.Subscription.splitFromTeam()
+
+
+        PATH CAN TAKE PARAMETERS                      PARAMETERS CAN SPECIFY TYPES
+GET     /teams/domainPolicy/:email                    com.lucidchart.web.controllers.Team.domainPolicyRedirect(email)
+GET     /users/lookup/:userId                         com.lucidchart.web.controllers.AdminNg2.userLookup(userId: Long)
+GET     /users/payLevel/$levelId<[0-9]+>              com.lucidchart.web.controllers.Subscription.payLevel(levelId: Int)
+PUT     /users/mailingSubscriptions/:userId           com.lucidchart.web.controllers.User.modifyMailingSubscriptions(userId: Long)
+
+
+                                                      PARAMETERS NOT IN THE PATH ARE QUERY STRING PARAMETERS
+POST    /teams/create                                 com.lucidchart.web.controllers.Team.createSubmit(adminSection: Option[String])
+GET     /teams/instantInvite                          com.lucidchart.web.controllers.RequestToJoinTeamController.instantInvite(token: String)
+GET     /test/account                                 com.lucidchart.web.controllers.Register.registerTestUser(level: Option[String], redirect: Option[String], prefix: Option[String])
+GET     /users/isAutoDetectEdu                        com.lucidchart.web.controllers.User.isAutoDetectEdu(onlyUsedForCaching: Long = 0)</code></pre>
+                    </section>
+                    <section>
+                        <h3>Searching for Routes</h3>
+                        <ul>
+                            <li>Routes can appear in multiple files per service</li>
+                            <li>Main routes file always at <span class="code-highlight">&lt;service&gt;/conf/routes</span></li>
+                            <li>When searching, search for key non-parameterized parts of path in files matching <span class="code-highlight">*routes</span></li>
+                        </ul>
+                        <img src="architecture/routes-search.png">
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Authenticated</h3>
+                        <ul>
+                            <li>Almost every request needs to perform some kind of authentication</li>
+                            <li>Authentication starts with parsing token from cookies or <span class="code-highlight">Authorization</span> header</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3><span class="code-highlight">Lucidauth</span> Tokens</h3>
+                        <ul>
+                            <li>Contain userId, expiration, signature</li>
+                            <li>Signed with <span class="word-highlight">application secret</span></li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Requiring Authentication</h3>
+                        <ul>
+                            <li>Different between <span class="word-highlight">Chart-Web</span> and all other services</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// Chart-web
+def requiresLogin = withAuthentication { implicit request: CustomRequest[_] =>
+  val userId: Option[Long] = request.userId // Always defined
+}
+def maybeLoggedIn = CustomAction { implicit request: CustomRequest[_] =>
+  val userId: Option[Long] = request.userId // Either defined or empty
+}
+
+// Other services
+def requresLogin = withAuthentication {
+  implicit request: AuthRequest[_, LucidAuthUser] =>
+    val userId: Long = authenticatedUserId
+}
+def maybeLoggedIn = maybeAuthenticated {
+  implicit request: AuthRequest[_, Option[LucidAuthUser]] =>
+    val userId: Option[Long] = authenticatedUserIdOption
+}
+def requiresSystemUser = withSystemUser { ... }
+                        </code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Body Parsed</h3>
+                        <ul>
+                            <li>GET and DELETE requests operate just fine with query strings and no body</li>
+                            <li>PUT, PATCH, POST requests almost always need to provide some data to the server</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Parsing JSON</h3>
+                        <ul>
+                            <li>90% of our APIs use JSON</li>
+                            <li>Requires implicit <span class="code-highlight">Reads[YourClass]</span> (likely already defined)</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// AddUserToAccountApiController.scala
+def main(accountId: Long) = withAuthentication(parse.json[AddUserToAccountPatchData]) {
+  implicit request =>
+    val patchData: AddUserToAccountPatchData = request.body
+}
+
+// Or
+
+// PatchUserMetadataApiController.scala
+def main(userId: Long) = withAuthentication(parse.json) { implicit request =>
+  request.body.validate[Seq[PatchUserMetadata[_]]] match {
+    case JsSuccess(seq, _) =>
+      val patchData: Seq[PatchUserMetadata[_]] = seq
+  }
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>Parsing XML or URL-Form-Encoded</h3>
+                        <pre><code class="scala code-small hljs">val externalUserForm = Form(
+  mapping(
+    "userId" -> longNumber,
+    "externalAccountId" -> text,
+    "externalAppId" -> text
+  )(ExternalUserFormData.apply)(ExternalUserFormData.unapply)
+)
+
+def linkExternalUser = withAuthentication { implicit request =>
+  externalUserForm
+    .bindFromRequest()
+    .fold(
+      formWithErrors => BadRequest(),
+      data => {
+        val externalUserData: ExternalUserFormData = data
+      }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>General Processing</h3>
+                        <ul>
+                            <li>Most everything else is the business logic</li>
+                            <li>Check any permissions</li>
+                            <li>Read necessary data from other services or database</li>
+                            <li>Modify data in other services or database</li>
+                            <li>Fire events and log information for debugging</li>
+                            <li>Return sensible response to user</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Example: Tokens</h3>
+                        <p>While debugging, you come across this API call and want to know what it's doing:</p>
+                        <pre><code class="nohighlight code-small hljs">GET http://users.lucidchart.com/tokens/0028cc991c58b3d175b919c432f7fad10c3e3ab5</code></pre>
+                    </section>
+                    <section>
+                        <h3>Identify the Service</h3>
+                        <ul>
+                            <li>Most requests to users.lucidchart.com automatically go to user-service</li>
+                            <li>Can double check ACLs, just in case</li>
+                        </ul>
+                        <pre><code class="nohighlight code-small hljs">Search: /tokens/
+Files: lucid-acls
+
+// lucid/main/lucid-acls:
+acl SERVICE_user                  path_reg ^/tokens/[0-9a-zA-Z:\-]+$</code></pre>
+                    </section>
+                    <section>
+                        <h3>Find the Controller</h3>
+                        <pre><code class="nohighlight code-small hljs">Search: /tokens/
+Files: user-service/*routes
+
+// lucid/main/user-service/conf/oauth.routes:
+GET      /tokens/:token             com.lucidchart.services.user.oauth.controllers.GetTokenApiController.main(token)
+PATCH    /tokens/:token             com.lucidchart.services.user.oauth.controllers.UpdateTokenApiController.updateByConsumerAndUser(token)
+DELETE   /tokens/:token             com.lucidchart.services.user.oauth.controllers.DeleteTokenApiController.main(token)</code></pre>
+                    </section>
+                    <section>
+                        <h3>Find the Code</h3>
+                        <pre><code class="scala code-small hljs">// lucid/main/user-service/app/com/.../oauth/controllers/GetTokenApiController.scala:
+class GetTokenApiController(
+  tokenModel: TokenModel,
+  controllerComponents: ControllerComponents
+) extends ApiController(controllerComponents) {
+
+  def main(token: String) = withAuthentication { implicit request =>
+    tokenModel.getToken(token).fold(NotFound) { token =>
+      val hasPermission = authenticatedUserId == token.user.asID ||
+        isSystemUser ||
+        authUserHasPermissions(Permissions.VIEW_ALL_USERS)
+
+      if (hasPermission) {
+        respondWithJson(Json.toJson(token), OK)
+      } else {
+        forbiddenResponse()
+      }
+    }
+  }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Response Sent</h3>
+                        <ul>
+                            <li>Final step in server processing is to respond to the caller</li>
+                            <li>Every response includes a status code; most include a body</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Basic Responses</h3>
+                        <pre><code class="scala code-small hljs">// Play Framework defines response objects for all statuses
+Ok // 200
+NoContent // 204
+BadRequest // 400
+Forbidden // 403
+NotFound // 404
+
+Ok("This message will appear in the response body")
+Redirect("/new/url")
+BadRequest(Json.obj("error" -> "Missing parameter"))</code></pre>
+                    </section>
+                    <section>
+                        <h3>Advanced Responses - Chart-Web</h3>
+                        <ul>
+                            <li><span class="word-highlight">Chart-Web</span> most often responds with HTML</li>
+                            <li><span class="word-highlight">Play Framework</span> provides templating engine for HTML responses</li>
+                            <li>Files can be found by searching for everything after "html"</li>
+                            <li>All files end in <span class="code-highlight">.scala.html</span></li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// lucid/main/chart-web/app/com/lucidchart/web/controllers/office/MSOffice.scala
+Ok(com.lucidchart.web.views.html.office.image(documentId, page, imageSize))
+
+// lucid/main/chart-web/app/com/lucidchart/web/views/office/image.scala.html
+@(documentId: java.util.UUID, page: Int, size: Int)
+
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Copy and paste this image into your document&lt;/h1&gt;
+        &lt;image src="/documents/thumb/@documentId/@page/@{util.Random.nextInt(10000)}/NULL/@size/1"&gt;&lt;/image&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                    </section>
+                    <section>
+                        <h3>Advanced Responses - Other Services</h3>
+                        <ul>
+                            <li>Often have many helper functions to build responses</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// ResultHelper.scala; available in most controllers
+def badRequestResponse(errors: Iterable[FormError])(
+    implicit request: RequestHeader) = {
+  if (request.accepts(JSON)) {
+    BadRequest(formErrorJson(errors))
+  } else {
+    BadRequest
+  }
+}
+
+def badRequestResponse(message: String = "Bad Request")(
+    implicit request: RequestHeader) = {
+  if (request.accepts(JSON)) {
+    respondWithJson(messageJson(message), BAD_REQUEST)
+  } else {
+    BadRequest
+  }
+}
+
+def forbiddenResponse(message: String = "Access denied")(
+    implicit request: RequestHeader) = {
+  if (request.accepts(JSON)) {
+    Forbidden(messageJson(message))
+  } else {
+    Forbidden
+  }
+}</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <h3>Part 2: Calling Other Services</h3>
+                    <h4>It's simple if you know how to do it</h4>
+                </section>
+                <section>
+                    <h3>Hypermedia/Hyperlinks</h3>
+                    <ul>
+                        <li>All resources provide URLs to themselves and related resources</li>
+                        <li>
+                            You can explore these links in your browser!
+                            <ul>
+                                <li><a href="www.lucidchart.com/bootstrap">www.lucidchart.com/bootstrap</a></li>
+                                <li><a href="users.lucidchart.com/users">users.lucidchart.com/users/&lt;userId&gt;</a></li>
+                            </ul>
+                        </li>
+                        <li>Our Scala client avoids building URLs as much as possible</li>
+                        <li>Extra complexity introduced when dealing with strongly-typed request and response bodies, authentication, query strings</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Recipe for Requests</h3>
+                    <ol>
+                        <li>A <span class="code-highlight">Link</span></li>
+                        <li>A <span class="code-highlight">Client</span></li>
+                        <li><span class="code-highlight">Request Modifiers</span> (Authentication)</li>
+                    </ol>
+                </section>
+                <section>
+                    <section>
+                        <h3>Obtaining Links</h3>
+                        <ul>
+                            <li>Most often obtained directly from an already-requested object (hypermedia)</li>
+                            <pre><code class="scala code-small hljs">// request.restUser is Chart-Web only
+val account: Option[Account] = request.restUser.account.get.okEntity
+
+request.restUser.oAuth.consumers
+  .withQuery(Seq("consumer" -> consumer.link.toString))
+  .delete</code></pre>
+                        </ul>
+                    </section>
+                    <section>
+                        <ul>
+                            <li>Also obtainable from a bootstrapper</li>
+                        </ul>
+                            <pre><code class="scala code-small hljs">// userRestClient: AuthPassingUserRestClient
+val account: Option[Account] =
+  userRestClient.bootstrapper.account(accountId).get.okEntity
+
+account.map(_.metadata.patch(
+  Seq(AccountMetadata(AccountMetadataKeys.Currency, Products.none, currency))
+))</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Clients</h3>
+                        <ul>
+                            <li>A <span class="code-highlight">Link</span> does not know how to make requests</li>
+                            <li><span class="code-highlight">Link</span>s implicitly converted to <span class="code-highlight">Client</span>s</li>
+                            <li><span class="code-highlight">Client</span>s define available methods (.get, .post, etc) and body/return types</li>
+                            <li>Implicit conversions for <span class="code-highlight">Client</span>s typically defined en masse</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// lucid/main/user-client/src/main/scala/com/lucidchart/user/client/UserClients.scala
+object UserClients extends UserClients {
+  override implicit def accountBlobClient(link: AccountBlobLink): AccountBlobClient = AccountBlobClient(link.url)
+  override implicit def accountClient(link: AccountLink): AccountClient = AccountClient(link.url)
+  override implicit def accountEncryptionClient(link: AccountEncryptionLink): AccountEncryptionClient = AccountEncryptionClient(link.url)
+  override implicit def accountGroupsClient(link: AccountGroupsLink): AccountGroupsClient = AccountGroupsClient(link.url)
+  override implicit def accountInvitationClient(link: AccountInvitationLink): AccountInvitationClient = AccountInvitationClient(link.url)
+  override implicit def accountInvitationsClient(link: AccountInvitationsLink): AccountInvitationsClient = AccountInvitationsClient(link.url)
+  // Repeated for over 100 lines...</code></pre>
+                    </section>
+                    <section>
+                        <h3>The Good News</h3>
+                        <ul><li>You usually don't need to think about <span class="code-highlight">Client</span>s</li></ul>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Authentication</h3>
+                        <ul>
+                            <li>Inter-service requests must include a <span class="word-highlight">Lucidauth</span> token</li>
+                            <li>Most commonly, requests will be signed as current user</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">import userRestClient.authPassingImplicits._
+
+restUser.metadata
+  .patch(
+    Seq(
+      UserMetadata(UserMetadataKeys.Language, Products.none, browserLang.code.toString)
+    )
+  )</code></pre>
+                    </section>
+                    <section>
+                        <h3>Impersonating Other Users</h3>
+                        <ul>
+                            <li>Occasionally, requests can be made as another user or even the system user</li>
+                            <li>WARNING: Use these features wisely! Privelege escallation vulnerabilities can occur!</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// lucid/main/chart-web/app/com/lucidchart/web/controllers/edu/lti/LTIController.scala
+val implicits = userRestClient.userAuthImplicits(studentId)
+import implicits._
+
+val student: Option[User] = userRestClient.bootstrapper.user(studentId).get.okEntity
+
+
+// lucid/main/chart-web/app/com/lucidchart/registration/Registration.scala
+import userRestClient.systemUserImplicits._
+
+val domainAccounts: Option[Seq[DomainAccount]] =
+  userRestClient.bootstrapper.bootstrap.domainAccounts
+   .withQuery(Seq("domain" -> domain))
+   .get</code></pre>
+                    </section>
+                </section>
+                <section>
+                    <h3>Part 3: Databases</h3>
+                    <h4>Did you try Running your Patches?</h4>
+                </section>
+                <section>
+                    <h3>DB Architecture: High Level</h3>
+                    <img src="architecture/DB.png">
+                </section>
+                <section>
+                    <h3>The <span class="word-highlight">Model</span> Class</h3>
+                    <ul>
+                        <li>
+                            Most database code is organized by table
+                            <ul>
+                                <li>UserModel.scala -- users table</li>
+                                <li>AccountModel.scala -- accounts table</li>
+                                <li>etc.</li>
+                            </ul>
+                        </li>
+                        <li>Lucid convention is to keep all sql statements in model classes only</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Opening a <span class="code-highlight">Connection</span></h3>
+                    <ul>
+                        <li><span class="code-highlight">Connection</span>s are channels of communication between server and DB</li>
+                        <li>Not all tables are on the same server!</li>
+                        <li>Model classes have logic to help open a <span class="code-highlight">Connection</span></li>
+                        <li><span class="code-highlight">Connection</span>s are limited! Close them quickly</li>
+                    </ul>
+                        <pre><code class="scala code-small hljs">// lucid/main/user-service/app/com/lucidchart/services/user/UserServiceStore.scala
+accountModel.connect(id) { implicit connection =>
+  accountMetadataModel.setMetadata(
+    id,
+    Products.none,
+    AccountMetadataKeys.AbTest(testId),
+    value
+  )
+}</code></pre>
+                </section>
+                <section>
+                    <section>
+                        <h3>SQL Best Practices</h3>
+                        <ul>
+                            <li>Don't run queries with empty lists</li>
+                            <li>Format queries in a manner that is easy to read</li>
+                            <li>Use already-defined parser functions where possible</li>
+                            <li>Ensure queries are using indices</li>
+                            <li>Avoid <span class="code-highlight">join</span>s</li>
+                            <li>Ask DB Patches Team to review query changes</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>SQL Example</h3>
+                        <pre><code class="scala code-small hljs">// lucid/main/document-service/app/com/.../document/storage/models/DocumentModel.scala
+val ids = docs.map(_.id)
+
+val allTemplates = if (ids.isEmpty) {
+  List.empty[TemplateRecord]
+} else {
+  var templates = MysqlCommand("DocumentModel._docListAssociatedData-0")(
+    sql"""
+        SELECT ${TemplateRecord.sqlFields}
+        FROM templates
+        WHERE document_id IN ($ids)
+    """.asList(TemplateRecord.parser)
+  ).execute.value
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>The DB Patches Team</h3>
+                        <ul>
+                            <li>Led by Jeff Wright</li>
+                            <li>Stephen Rollins</li>
+                            <li>Sriraam Subramanian</li>
+                            <li>Bryant Nielson</li>
+                            <li>Reach out in <span class="word-highlight">#db</span> on Slack</li>
+                            <img src="architecture/jeff-wright.png">
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Patches</h3>
+                        <ul>
+                            <li>Change a table's schema or modify data, but never both</li>
+                            <li>Patches MUST be reviewed by DB Patches Team in separate pull request from application code</li>
+                            <li>DB Patches Team ensures patches are released properly</li>
+                        </ul>
+                        <pre><code class="scala code-small hljs">// lucid/main/activity-service/app/.../migrations/sql/data/SqlDataPatch00003.scala
+class SqlDataPatch00003 extends ActivitySqlPatch {
+  val id = 3
+
+  def execute(conn: Connection) {
+    sql"""
+      ALTER TABLE `activities`
+        MODIFY COLUMN `id` BIGINT NOT NULL
+    """.execute()(conn)
+  }
+
+  def undo(conn: Connection) {
+    sql"""
+      ALTER TABLE `activities` 
+        MODIFY COLUMN `id` BINARY(16) NOT NULL
+    """.execute()(conn)
+  }
+}</code></pre>
+                    </section>
+                    <section>
+                        <h3>Creating a Patch?</h3>
+                        <ul>
+                            <li>Follow the steps in Confluence</li>
+                            <li><a href="https://confluence.lucidchart.com/display/EN/Databases#Databases-CreatingaPatch">https://confluence.lucidchart.com/display/EN/Databases#Databases-CreatingaPatch</a></li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                  <h2>Questions?</h2>
+                </section>
+            </div>
+        </div>
+
+        <script src="../reveal/lib/js/head.min.js"></script>
+        <script src="../reveal/js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: '../reveal/plugin/markdown/marked.js' },
+                    { src: '../reveal/plugin/markdown/markdown.js' },
+                    { src: '../reveal/plugin/notes/notes.js', async: true },
+                    { src: '../reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
