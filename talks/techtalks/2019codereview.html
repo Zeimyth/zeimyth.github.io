@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-        <title>Cracking the Code Review - Lucid Software 2018</title>
+        <title>Cracking the Code Review 2019 Edition - Lucid Software 2019</title>
 
         <link rel="stylesheet" href="../reveal/css/reveal.css">
 
@@ -30,11 +30,6 @@
                 line-height: 14pt;
             }
 
-            p.text-small {
-                font-size: 16pt;
-                line-height: 18pt;
-            }
-
             .word-highlight {
                 /*color: lemonchiffon;*/ /* dark */
                 color: crimson; /*light*/
@@ -58,7 +53,7 @@
             }
 
             .image p {
-              font-size: 75%;
+              font-size: 16pt;
               margin: 0;
             }
 
@@ -80,31 +75,20 @@
         <div class="reveal">
             <div class="slides">
                 <section>
-                    <h2>Cracking the Code Review</h2>
+                    <h2>Cracking the Code Review - 2019 Edition</h2>
                     <div class="sub-title">
                       <p class="author">Stephen Rollins</p>
-                      <p>06-25-19</p>
+                      <p>07-23-19</p>
                       <a href="http://zeimyth.github.io/talks/techtalks/2019codereview.html">http://zeimyth.github.io/talks/techtalks/2019codereview.html</a>
                     </div>
-                    <aside class="notes">
-                      <p>Please feel free to ask questions or make comments throughout the presentation</p>
-                      <p>Makes for a more effective learning experience for all</p></aside>
                 </section>
                 <section>
                   <div class="image">
                     <img
-                      src="codereview/xkcd_code_quality_2.png"
-                      title="It's like you tried to define a formal grammar based on fragments of a raw database dump from the QuickBooks file of a company that's about to collapse in an accounting scandal."
-                      alt="https://xkcd.com/1695/"
-                      srcset="codereview/xkcd_code_quality_2.png 2x"
+                      src="codereview/Explanation-of-Code-Review-in-Testing.jpg"
+                      alt="https://www.testorigen.com/explanation-of-code-review-in-testing/"
                     />
-                    <p>Source: xkcd.com</p>
                   </div>
-                  <aside class="notes">
-                    <p>Every good presentation begins with an XKCD.</p>
-                    <p>(20 second pause)</p>
-                    <p>- How to avoid being in this situation!</p>
-                  </aside>
                 </section>
                 <section>
                   <section>
@@ -132,58 +116,139 @@
                     </aside>
                   </section>
                   <section>
-                    <blockquote>
-                      After experiencing the benefits of peer reviews for nearly fifteen years, I would never work in a team that did not perform them.
-                      <br />
-                      - Karl Wiegers, “Humanizing Peer Reviews”
-                    </blockquote>
-                    <aside class="notes"></aside>
+                    <h3>What does a Good Code Review Look Like?</h3>
+                    <ul>
+                      <li>Modular, easy to follow</li>
+                      <li>Makes good use of everyone's time</li>
+                      <li>Effectively transfers knowledge</li>
+                      <li>Thorough; identifies relevant issues to fix</li>
+                      <li>Leaves code accessible for future developers</li>
+                    </ul>
+                      <aside class="notes">
+                        Responsibilities for both the writer and the reviewer.
+                      </aside>
                   </section>
-                </section>
-                <section>
-                  <h3>What does a Good Code Review Look Like?</h3>
-                  <ul>
-                    <li>Modular, easy to follow</li>
-                    <li>Makes good use of everyone's time</li>
-                    <li>Effectively transfers knowledge</li>
-                    <li>Thorough; identifies relevant issues to fix</li>
-                  </ul>
-                    <aside class="notes">
-                      Responsibilities for both the writer and the reviewer.
-                    </aside>
-                </section>
-                <section>
-                  <p>How can I make my code reviews more effective as a</p>
-                  <ul>
-                    <li>code author?</li>
-                    <li>code reviewer?</li>
-                  </ul>
-                    <aside class="notes"></aside>
+                  <section>
+                    <p>How can I make my code reviews more effective as a</p>
+                    <ul>
+                      <li>code author?</li>
+                      <li>code reviewer?</li>
+                    </ul>
+                      <aside class="notes"></aside>
+                  </section>
                 </section>
                 <section>
                   <h3>Responsibilities of the Code Author</h3>
                   <ul>
-                    <li>Empower your reviewers be more effective</li>
+                    <li>Empower reviewers be more effective</li>
                     <li>Pick the right reviewers</li>
-                    <li>Don't waste your reviewers’ time</li>
+                    <li>Don't waste reviewers’ time</li>
+                    <li>Leave well-organized code changes</li>
                   </ul>
                     <aside class="notes">
                       <p>- How easy is it to follow your changes?</p>
                       <p>- How effective will your chosen reviewers be?</p>
                       <p>- How can you best prepare your reviewers?</p>
+                      <p>- How easily can another developer pick up from the middle of your pull request?</p>
                     </aside>
                 </section>
                 <section>
+                  <h3>What's in a Name?</h3>
+                  <ul>
+                    <li>
+                      Branch naming conventions
+                      <ul>
+                        <li>Succinct summary (or Jira issue title)</li>
+                        <li>Jira issue number (optional)</li>
+                      </ul>
+                    </li>
+                    <li>
+                      Pull request naming conventions
+                      <ul>
+                        <li>Human-readable title</li>
+                        <li>Default PR name is taken directly from branch name</li>
+                      </ul>
+                    </li>
+                  </ul>
+                  <img src="codereview/pr-titles.png">
+                </section>
+                <section>
+                  <h3>Responsible Commit Management</h3>
+                  <ul>
+                    <li>The smallest "unit" of cohesive code changes</li>
+                    <li>Remains in git history forever</li>
+                  </ul>
+                </section>
+                <section>
                   <section>
-                    <h3>Principle: Modular commits and code reviews are easier to review effectively</h3>
+                    <p>Which commit messages would you rather see?</p>
+                    <pre><code class="text code-small hljs">a8f4bd66c27 Removed the second webinar form
+
+a7e97cfb541 CHART-33340 add beacon to smart table for add or change dataset
+
+cfe833cca98 Remove try/catch block
+
+ef2924f1bc7 Update test files
+
+b227580e755 CHART-33533 Convert SCIM page to Angular 2
+
+a707f0a9cf2 In which our hero checks parent accounts when determining if a
+            share should be allowed.</code></pre>
+                  </section>
+                  <section>
+                    <h3>Anatomy of a Commit Message</h3>
+                    <p>Git treats the first line of a commit message as a title or summary, and all subsequent lines as a description</p>
+                    <pre><code class="text code-small hljs">$ git log
+
+commit ca1f8488d2393460f3b96b02c6301c74a5cfd445
+Author: Dan Mercer &lt;dmercer@lucidchart.com&gt;
+Date:   Mon Jul 22 10:34:10 2019 -0600
+
+    CHART-33957 - One-line fix for google slides auth flow.
+    
+    The ConversionClient was wrapping the XHR error in an Error, meaning the caller
+    could no longer check the status code of the HTTP response
+    (googleslidesdialog.ts line 344).
+    
+    This bug was introduced in 65928ff4695cfae567b1e702a354ff985a17df5f.</code></pre>
+                    <pre><code class="text code-small hljs">$ git log --oneline
+
+ca1f8488d23 CHART-33957 - One-line fix for google slides auth flow.</code></pre>
+                  </section>
+                  <section>
+                    <h3>Commit Message Essentials</h3>
                     <ul>
+                      <li>
+                        Commit message titles must contain the following:
+                        <ul>
+                          <li>Jira ticket number(s)</li>
+                          <li>Summary of what changed</li>
+                        </ul>
+                      </li>
+                      <li>
+                        Commit message bodies may contain the following:
+                        <ul>
+                          <li>Detailed explanation of changes</li>
+                          <li>Explanation of reasoning behind the changes</li>
+                          <li>Cute flavor text ("In which our hero...")</li>
+                          <li>References to other commits</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </section>
+                </section>
+                <section>
+                  <section>
+                    <h3>Modular Commits</h3>
+                    <ul>
+                      <li>Modular commits and code reviews are easier to review effectively</li>
                       <li>
                         Single Responsibility Principle
                         <ul><li>A good commit or code review solves one clear problem and does it well</li></ul>
                       </li>
                       <li>One major change per commit</li>
                       <li>1:1 mapping between issue in JIRA and code review</li>
-                      <li>Keep large refactoring or formatting changes separate</li>
+                      <li>Keep large refactoring or formatting changes in separate commits from feature work</li>
                     </ul>
                     <aside class="notes">
                       "Single responsibility principle" for code reviewing.
@@ -227,7 +292,7 @@
                   <section>
                     <h3>How to Identify a Modular Commit</h3>
                     <ul>
-                      <li>Commits with one major change and other trivial changes that follow from it</li>
+                      <li>Commits with one major change and other essential changes that stem from it</li>
                       <li>Commits that touch a file for 1-2 reasons</li>
                       <li>Primary PR efforts are preceeded by refactoring commits that enable the main feature</li>
                       <li>Avoid "Formatting," "Make it compile," or "PR Fixes" commits</li>
@@ -235,6 +300,7 @@
                         Where possible:
                         <ul>
                           <li>Ensure every commit compiles on its own</li>
+                          <li>Run the formatter before committing</li>
                           <li>Bundle unit tests with feature work</li>
                         </ul>
                       </li>
@@ -251,11 +317,13 @@
                     <aside class="notes">
                       Talk to your local git expert (likely team lead; alternatively #git or #dev)
                     </aside>
+                    <!-- TODO: Modular commit animation -->
                   </section>
                 </section>
                 <section>
                   <section>
-                    <h3>Principle: Smaller code reviews get reviewed more thoroughly</h3>
+                    <h3>Keep Code Reviews Small</h3>
+                    <p>Smaller code reviews get reviewed more thoroughly</p>
                     <ul>
                       <li>Break big features into small but complete changes</li>
                       <li>Push/review incremental changes frequently</li>
@@ -267,6 +335,8 @@
                       Reviewing tons of interconnected changes gets tiring!
                       <br />
                       Added benefit: continuously depoly incremental, bite-sized changes
+                      <br />
+                      More effort for code writer, but stories will spend less time in code review and bugs will be caught more quickly.
                     </aside>
                   </section>
                   <section>
@@ -277,7 +347,7 @@
                 </section>
                 <section>
                   <section>
-                    <h3>Principle: Don’t distract your reviewers with tedious code flaws</h3>
+                    <h3>Don’t Distract with Tedious Code Flaws</h3>
                     <ul>
                       <li>Review your own code</li>
                       <li>Let your code build</li>
@@ -322,7 +392,7 @@
                         <li>
                           Merging
                           <ul>
-                            <li>Ensures builds are as accurate as possible</li>
+                            <li>Ensures builds are as up to date as possible</li>
                             <li>Avoids merge "conflicts" that git allows but cause build errors</li>
                           </ul>
                         </li>
@@ -332,21 +402,51 @@
                 </section>
                 <section>
                   <section>
-                    <h3>Principle: Who you ask to review your code matters</h3>
+                    <h3>Understand Your Own Changes</h3>
+                    <p>If you don't know what your code does or why something works the way it does, ask another engineer who does</p>
+                    <ul>
+                      <li>Dependency injection</li>
+                      <li>Pipes</li>
+                      <li>Angular, Play Framework</li>
+                      <li>SystemUserRequestModifier</li>
+                      <li>Database queries</li>
+                      <li>Implicits</li>
+                      <li>etc...</li>
+                    </ul>
+                    <aside class="notes">
+                      Remember, code reviews are about ensuring code quality and finding bugs. We can't find bugs in code we don't understand!
+                    </aside>
+                  </section>
+                  <section>
+                    <div class="image">
+                      <img
+                        src="codereview/reuse.jpg"
+                        alt="https://geekandpoke.typepad.com/geekandpoke/2009/12/simply-explained.html"
+                        style="height: 500px"
+                      />
+                      <p>Source: https://geekandpoke.typepad.com/geekandpoke/2009/12/simply-explained.html</p>
+                    </div>
+                  </section>
+                </section>
+                <section>
+                  <section>
+                    <h3>Who Should Review your Code?</h3>
                     <ul>
                       <li>
                         Feature experts
                         <ul>
-                          <li>for finding bugs</li>
+                          <li>for finding bugs or understanding complex feature sets</li>
+                          <li>Often will be CodeOwners</li>
                           <li>Don't be afraid to touch base with experts during development</li>
+                          <li>Be patient when people have a lot of code reviews already</li>
                         </ul>
                       </li>
                       <li>
                         Feature novices
                         <ul><li>to share knowledge</li></ul>
                       </li>
+                      <li>QA</li>
                       <li>Non-technical stakeholders</li>
-                      <li>Don't overwhelm people who have a lot of code reviews already</li>
                     </ul>
                     <aside class="notes">
                       <ul>
@@ -375,13 +475,14 @@
                   </section>
                 </section>
                 <section>
-                  <h3>Principle: Enable your reviewers to guide themselves through your code</h3>
+                  <h3>Self-Documenting Code Reviews</h3>
                   <ul>
                     <li>Leave helpful comments on reviews</li>
-                    <li>Provide background for the changes, testing tips</li>
+                    <li>Provide background for the changes</li>
                     <li>Explain complex algorithms</li>
-                    <li>Review large or complex changes in person</li>
+                    <li>Provide testing tips</li>
                     <li>Write good, thorough acceptance criteria</li>
+                    <li>Review large or complex changes in person</li>
                   </ul>
                   <img src="codereview/ExplanatoryComments.png" />
                   <aside class="notes">
@@ -402,13 +503,20 @@
                     <aside class="notes">You are the final gatekeeper before this code goes to our customers.</aside>
                   </section>
                   <section>
-                    <img src="codereview/positive.jpg" />
-                    <!-- <img src="codereview/positive.jpg" srcset="codereview/positive.jpg 2x" /> -->
+                    <div class="image">
+                      <img
+                        src="codereview/wanna_see_the_code.png"
+                        alt="https://xkcd.com/2138/"
+                        title="And because if you just leave it there, it's going to start contaminating things downstream even if no one touches it directly."
+                        
+                      />
+                      <p>Source: https://xkcd.com/2138/</p>
+                    </div>
                     <aside class="notes"></aside>
                   </section>
                 </section>
                 <section>
-                  <h3>Principle: Computers are better at reading code than you are</h3>
+                  <h3>Let the Computer Help</h3>
                   <ul>
                     <li>Ensure builds pass</li>
                     <li>
@@ -425,9 +533,15 @@
                   </aside>
                 </section>
                 <section>
-                  <h3>Principle: Code authors need to context-switch, too</h3>
+                  <h3>Timeliness</h3>
                   <ul>
-                    <li>Be timely in reviewing and giving feedback</li>
+                    <li>
+                      Be timely in reviewing and giving feedback
+                      <ul>
+                        <li>Try to review within 1 working day</li>
+                        <li>Communicate with code author if you are too busy</li>
+                      </ul>
+                    </li>
                     <li>Be willing to interrupt your work for high-priority code reviews</li>
                   </ul>
                   <aside class="notes">
@@ -438,7 +552,30 @@
                   </aside>
                 </section>
                 <section>
-                  <h3>Principle: Be a gatekeeper of code quality</h3>
+                  <section>
+                    <h3>Ensure you Understand the Code</h3>
+                    <ul>
+                      <li>Do not approve a PR if you don't understand what it's doing</li>
+                      <li>
+                        Ask developer for explanation
+                        <ul>
+                          <li>If they don't understand it either, find another developer together who does</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </section>
+                  <section>
+                    <div class="image">
+                      <img
+                        src="codereview/The-Art-of-Programming.jpg"
+                        alt="https://geekandpoke.typepad.com/geekandpoke/2008/02/the-art-of-prog.html"
+                      />
+                      <p>Source: https://geekandpoke.typepad.com/geekandpoke/2008/02/the-art-of-prog.html</p>
+                    </div>
+                  </section>
+                </section>
+                <section>
+                  <h3>Be a Gatekeeper of Code Quality</h3>
                   <ul>
                     <li>Understand our code quality guidelines</li>
                     <li>Unit tests</li>
@@ -457,9 +594,29 @@
                   </aside>
                 </section>
                 <section>
-                  <h3>Principle: Be the reviewer you wish you could have</h3>
+                  <h3>A Word on CodeOwners</h3>
                   <ul>
-                    <li>Leave Todos on the pull request for the most important feedback</li>
+                    <li>
+                      Code Owners are automatically added to pull requests that touch their files
+                      <ul>
+                        <li>File: <span class="word-highlight">/lucid/main/CODEOWNERS</span></li>
+                      </ul>
+                    </li>
+                    <li>Code Owners are not required to review the full PR</li>
+                    <li>
+                      Responsible Code Owner behavior:
+                      <ul>
+                        <li>If you don't review it all, leave a comment explaining what you did review</li>
+                        <li>Consier leaving a Task stating a full review is still required</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </section>
+                <section>
+                  <h3>Be the Reviewer you Wish you Could Have</h3>
+                  <ul>
+                    <li>Be thorough even if other developers have already reviewed the code</li>
+                    <li>Leave Tasks on the pull request for the most important feedback</li>
                     <li>Leave helpful feedback in addition to pointing out bugs</li>
                     <li>Ask questions; prompt discussion and thoughtful analysis</li>
                     <li>Don’t rush your reviews</li>
@@ -468,10 +625,13 @@
                 </section>
                 <section>
                   <h3>Additional Reading</h3>
-                  <p><a href="https://docs.google.com/document/d/1Xm7Qwt7oFP0WPYqzR_lg1iAQmv8mGjePHej15cCChdw/edit?usp=sharing">Printable Code Review Cheat Sheet</a></p>
-                  <p><a href="https://www.lucidchart.com/techblog/2017/02/08/cracking-the-code-review-part-1-preparing-your-code-review/">https://www.lucidchart.com/techblog/2017/02/08/cracking-the-code-review-part-1-preparing-your-code-review/</a></p>
-                  <p><a href="https://www.lucidchart.com/techblog/2017/03/02/cracking-code-review-part-2-tips-reviewers/">https://www.lucidchart.com/techblog/2017/03/02/cracking-code-review-part-2-tips-reviewers/</a></p>
-                  <p><a href="https://testing.googleblog.com/2017/06/code-health-too-many-comments-on-your.html">https://testing.googleblog.com/2017/06/code-health-too-many-comments-on-your.html</a></p>
+                  <ul>
+                    <li><a href="https://docs.google.com/document/d/1Xm7Qwt7oFP0WPYqzR_lg1iAQmv8mGjePHej15cCChdw/edit?usp=sharing">Printable Code Review Cheat Sheet</a></li>
+                    <li><a href="https://confluence.lucidchart.com/display/EN/Git+Workflow#GitWorkflow-Commitmessageandbranchnameconventions">Confluence Article on Commit and Branch Name Conventions</a></li>
+                    <li><a href="https://www.lucidchart.com/techblog/2017/02/08/cracking-the-code-review-part-1-preparing-your-code-review/">https://www.lucidchart.com/techblog/...code-review/</a></li>
+                    <li><a href="https://www.lucidchart.com/techblog/2017/03/02/cracking-code-review-part-2-tips-reviewers/">https://www.lucidchart.com/techblog/...tips-reviewers/</a></li>
+                    <li><a href="https://testing.googleblog.com/2017/06/code-health-too-many-comments-on-your.html">https://testing.googleblog.com/...comments-on-your.html</a></li>
+                  </ul>
                 </section>
                 <section>
                   <h3>Final Thoughts</h3>
