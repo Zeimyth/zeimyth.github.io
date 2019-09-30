@@ -1,0 +1,381 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Getting the Most Out of Your Spikes - Lucid Software 2019</title>
+
+        <link rel="stylesheet" href="../reveal/css/reveal.css">
+
+        <!-- Primary presenation theme -->
+        <!-- <link rel="stylesheet" href="../reveal/css/theme/league.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/css/theme/serif.css"> <!-- light -->
+
+        <!-- Syntax highlighting theme -->
+        <!-- <link rel="stylesheet" href="../reveal/lib/css/zenburn.css"> --> <!-- dark -->
+        <link rel="stylesheet" href="../reveal/lib/css/tomorrow.min.css"> <!-- light -->
+
+        <style>
+            .reveal pre code {
+                max-height: 500px;
+            }
+
+            .code-highlight {
+                color: #77e;
+            }
+
+            code.code-small {
+                font-size: 12pt;
+                line-height: 14pt;
+            }
+
+            p.text-small {
+                font-size: 16pt;
+                line-height: 18pt;
+            }
+
+            .word-highlight {
+                /*color: lemonchiffon;*/ /* dark */
+                color: crimson; /*light*/
+            }
+
+            .sub-title .author {
+              font-size: 150%;
+            }
+
+            .sub-title a {
+              font-size: 50%;
+            }
+
+            .sub-title p:not(.author) {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .sub-title .job-title {
+              margin-bottom: 30px;
+            }
+
+            .image p {
+              font-size: 75%;
+              margin: 0;
+            }
+
+            .reveal ul ul li {
+              font-size: 75%;
+            }
+        </style>
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? '../reveal/css/print/pdf.css' : '../reveal/css/print/paper.css';
+            document.getElementsByTagName('head')[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h2>Getting the Most Out of Your Spikes</h2>
+                    <div class="sub-title">
+                      <p class="author">Stephen Rollins</p>
+                      <p>10-01-19</p>
+                      <a href="http://zeimyth.github.io/talks/techtalks/2019spikes.html">http://zeimyth.github.io/talks/techtalks/2019spikes.html</a>
+                    </div>
+                </section>
+                <section>
+                    <section>
+                        <h3>What is a Spike?</h3>
+                    </section>
+                    <section>
+                        <p>An exploratory task meant to gather knowledge to open the way for future work with a small amount of focused effort</p>
+                        <img height="300" src="spikes/railroad-spike.jpg">
+                    </section>
+                    <section>
+                        <p>A way to quickly investigate the current status of a feature with a timeboxed commitment</p>
+                        <img height="300" src="spikes/volleyball-spike.jpg">
+                    </section>
+                    <section>
+                        <p>An opportunity for rapid prototyping, allowing the team to gain traction and determine the best way forward</p>
+                        <img height="300" src="spikes/track-spike.jpg">
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>What is a Spike?</h3>
+                        <ul>
+                            <li>Story that results in information, not code</li>
+                            <li>Intended to resolve uncertainty and make future estimates more accurate</li>
+                            <li>Usually timeboxed</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>What Isn't a Spike?</h3>
+                        <ul>
+                            <li>Not an MVP</li>
+                            <li>Not code that users will ever see (can be rough prototype)</li>
+                            <li>Not an opportunity to slack off with no deliverable after the story</li>
+                            <li>Should not last more than 1-2 "ideal" days</li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <h3>When Should We Do Spikes?</h3>
+                    <ul>
+                        <li>
+                            To increase the accuracy of an estimate
+                            <ul><li>Ideal for large stories, essential for epics</li></ul>
+                        </li>
+                        <li>When deciding between multiple technologies or approaches</li>
+                    </ul>
+                    <img height="300" src="spikes/scrum-cards.png">
+                </section>
+                <section>
+                    <h3>Types of Spikes</h3>
+                </section>
+                <section>
+                    <section>
+                        <h3>Roadmap Spikes</h3>
+                        <img height="300" src="spikes/roadmap.jpg">
+                    </section>
+                    <section>
+                        <h3>Questions to be Answered</h3>
+                        <ul>
+                            <li>How long will this epic take?</li>
+                            <li>What steps are required for MVP? What steps are optional?</li>
+                            <li>What are the highest-priority tasks to get finished first?</li>
+                            <li>How can this epic be coordinated/parallelized across the team?</li>
+                            <li>Roughly how complex are the individual tasks?</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <!-- TODO: Come up with an example to use while stepping through all of these -->
+                        <h3>Example Approach</h3>
+                        <ol>
+                            <li>Understand the Feature Under Investigation</li>
+                            <li>List High-Level Milestones</li>
+                            <li>Break Milestones into Many Component Stories</li>
+                            <li>Understand Environment Capabilities and Limitations</li>
+                        </ol>
+                    </section>
+                    <section>
+                        <h3>1. Understand the Feature Under Investigation</h3>
+                        <ul>
+                            <li>What functionality is required?</li>
+                            <li>Where in the product will this code/feature live?</li>
+                            <li>How are users likely to use this feature?</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>2. List High-Level Milestones</h3>
+                        <ul>
+                            <li>Major features of the epic</li>
+                            <li>Major obstacles or refactorings that are expected</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>3. Break Milestones into Many Component Stories</h3>
+                        <ul>
+                            <li>What steps are required to complete each milestone?</li>
+                            <li>Continue breaking stories down until every story can't be reasonably broken into smaller steps</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>4. Understand Environment Capabilities and Limitations</h3>
+                        <ul>
+                            <li>What classes or functions will you need to work with?</li>
+                            <li>
+                                What third party systems will be involved?
+                                <ul><li>Find documentation, and document it</li></ul>
+                            </li>
+                            <li>What existing code can be leveraged?</li>
+                            <li>Consider frontend needs (build targets, i18n, UX work)</li>
+                            <li>Consider backend needs (endpoints, data models)</li>
+                            <li>Consider database needs (Will new tables be necessary?)</li>
+                            <li>Consider infrastructure needs (chef changes, lucidbag changes, new services)</li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Functional Prototype Spikes</h3>
+                        <img height="300" src="spikes/prototype.jpg">
+                    </section>
+                    <section>
+                        <h3>Questions to be Answered</h3>
+                        <ul>
+                            <li>How feasible is this project?</li>
+                            <li>What steps are required for this project?</li>
+                            <li>How long will the remainder of the project take?</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <!-- TODO: Come up with an example to use while stepping through all of these -->
+                        <h3>Example Approach</h3>
+                        <ol>
+                            <li>Understand the Feature Under Investigation</li>
+                            <li>Dive in with Coding, Hackathon-Style</li>
+                            <li>Don't Spend Too Long on Obstacles</li>
+                            <li>Iterate and Restart</li>
+                            <li>Emphasize a Proof of Concept</li>
+                        </ol>
+                    </section>
+                    <section>
+                        <h3>1. Understand the Feature Under Investigation</h3>
+                        <ul>
+                            <li>What functionality is required?</li>
+                            <li>Where in the product will this code/feature live?</li>
+                            <li>How are users likely to use this feature?</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>2. Dive in with Coding, Hackathon-Style</h3>
+                        <ul>
+                            <li>Seek to understand how to approach the problem rather than to write perfect code</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>3. Don't Spend Too Long on Obstacles</h3>
+                        <ul>
+                            <li>Spare a brief investigation for problems, but no more</li>
+                            <li>Don't let obstacles derail the spike</li>
+                            <li>
+                                Uncovering deep problems is a good thing--record it and move on
+                                <ul><li>Return if there is more time later</li></ul>
+                            </li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>4. Iterate and Restart</h3>
+                        <ul>
+                            <li>Try multiple approaches to find a good solution</li>
+                            <li>Record and retain learnings between iterations</li>
+                            <li>Every implementation is an experiment</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>5. Emphasize a Proof of Concept</h3>
+                        <ul>
+                            <li>Full coverage of the feature is more valuable than near-finished code</li>
+                            <li>After PoC is achieved, emphasize laying a solid groundwork</li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Technical/Tooling Spikes</h3>
+                        <img height="300" src="spikes/toolbox.jpg">
+                    </section>
+                    <section>
+                        <h3>Questions to be Answered</h3>
+                        <ul>
+                            <li>What technology, tool, or integration is the best fit for our current need?</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3>Example Approaches</h3>
+                        <ul>
+                            <li>Google searching about considered tools</li>
+                            <li>Asking informed coworkers</li>
+                            <li>Do a Functional Prototype Spike of a handful of selected tools</li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Doing Spikes Well</h3>
+                    </section>
+                    <section>
+                        <!-- TODO -->
+                        Identify deliverable at the start
+                        Have a solid deliverable
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Deliverables</h3>
+                        <img height="300" src="spikes/delivery.jpg">
+                    </section>
+                    <section>
+                        <h3>Confluence Documentation</h3>
+                        <ul>
+                            <li>Ideal if specific stories aren't necessary</li>
+                            <li>
+                                Include many links and details
+                                <ul><li>Could another dev work on this epic without you?</li></ul>
+                            </li>
+                        </ul>
+                        <img height="300" src="spikes/confluence.png">
+                    </section>
+                    <section>
+                        <h3>Jira Stories</h3>
+                        <ul>
+                            <li>Cover as many features and sub-features as possible</li>
+                            <li>Provide rough estimates</li>
+                            <li>Include enough info so other devs can work without you</li>
+                        </ul>
+                        <img height="300" src="spikes/jira.png">
+                    </section>
+                    <section>
+                        <h3>Roadmap Diagrams</h3>
+                        <ul>
+                            <li>More visual version of Jira Stories</li>
+                            <li>Clearly map out dependencies between features</li>
+                            <li>Consider populating with data, points, story progress dynamically</li>
+                        </ul>
+                        <img height="300" src="spikes/lucidchart.png">
+                    </section>
+                    <section>
+                        <h3>Technical Proof of Concept</h3>
+                        <ul>
+                            <li>Share your end product and your recommendation with the team</li>
+                            <li>Proofs of Concept should also include one of the previous deliverables</li>
+                        </ul>
+                        <img height="300" src="spikes/proofofconcept.jpg">
+                    </section>
+                </section>
+                <section>
+                    <section>
+                        <h3>Peer-Reviewing a Spike</h3>
+                        <ul>
+                            <li>Hold an in-person review and discussion</li>
+                            <li>
+                                Review deliverable and look for missed details
+                                <ul>
+                                    <li>Could you explain the deliverable to someone else?</li>
+                                    <li>What questions would still be difficult to answer?</li>
+                                    <li>If reviewing a junior developer's deliverable, consider doing a mini-spike yourself to make sure nothing was overlooked</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                </section>
+                <section>
+                  <h2>Questions?</h2>
+                </section>
+            </div>
+        </div>
+
+        <script src="../reveal/lib/js/head.min.js"></script>
+        <script src="../reveal/js/reveal.js"></script>
+
+        <script>
+            // More info https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                history: true,
+
+                // More info https://github.com/hakimel/reveal.js#dependencies
+                dependencies: [
+                    { src: '../reveal/plugin/markdown/marked.js' },
+                    { src: '../reveal/plugin/markdown/markdown.js' },
+                    { src: '../reveal/plugin/notes/notes.js', async: true },
+                    { src: '../reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
