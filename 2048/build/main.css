@@ -1,0 +1,22 @@
+.grid {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  justify-content: space-between;
+  margin: 0 auto;
+  width: 400px;
+}
+.grid-row {
+  display: flex;
+  justify-content: space-between;
+}
+.grid-cell {
+  align-items: center;
+  background-color: dimgrey;
+  color: white;
+  display: flex;
+  font-size: 24pt;
+  height: 64;
+  justify-content: center;
+  width: 64;
+}
