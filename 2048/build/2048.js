@@ -575,6 +575,7 @@ define("ts/index", ["require", "exports", "ts/game/2048game"], function (require
     window.addEventListener('load', () => {
         const body = document.querySelector('body');
         if (body) {
+            disableMobileScrolling(body);
             // eslint-disable-next-line no-unused-vars
             const game = new _2048game_1.TwentyFourtyEightGame(body);
         }
@@ -582,5 +583,9 @@ define("ts/index", ["require", "exports", "ts/game/2048game"], function (require
             console.error('No DOM body detected!');
         }
     });
+    // https://stackoverflow.com/a/49853392
+    const disableMobileScrolling = (body) => {
+        body.addEventListener('touchmove', (event) => { event.preventDefault(); }, { passive: false });
+    };
 });
 //# sourceMappingURL=2048.js.map

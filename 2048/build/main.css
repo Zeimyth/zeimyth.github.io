@@ -1,3 +1,6 @@
+body {
+  background-color: #fcfcfc;
+}
 .grid {
   display: flex;
   flex-direction: column;
