@@ -87,6 +87,7 @@ define("ts/render/gridview", ["require", "exports"], function (require, exports)
         constructor(element, grid) {
             this.grid = grid;
             this.cells = this.initCellElements(element);
+            this.update();
         }
         initCellElements(element) {
             const cells = new Array(this.grid.height);
@@ -108,7 +109,17 @@ define("ts/render/gridview", ["require", "exports"], function (require, exports)
         update() {
             for (let y = 0; y < this.grid.height; y++) {
                 for (let x = 0; x < this.grid.width; x++) {
-                    this.cells[y][x].innerText = this.getCellValue({ x, y });
+                    const cellDom = this.cells[y][x];
+                    const cellValue = this.getCellValue({ x, y });
+                    cellDom.classList.forEach(className => {
+                        if (className.startsWith('value-')) {
+                            cellDom.classList.remove(className);
+                        }
+                    });
+                    if (cellValue !== ' ') {
+                        cellDom.classList.add(`value-${cellValue}`);
+                    }
+                    cellDom.innerText = cellValue;
                 }
             }
         }
@@ -150,7 +161,7 @@ define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/
             this.grid.setValueAtCellTo(coord, valueToAdd);
         }
         pickValueToAdd() {
-            if (Math.random() > .9) {
+            if (Math.random() > 0.9) {
                 return 4;
             }
             else {
@@ -420,35 +431,14 @@ define("ts/game/inputdirection", ["require", "exports"], function (require, expo
         InputDirection[InputDirection["Down"] = 3] = "Down";
     })(InputDirection = exports.InputDirection || (exports.InputDirection = {}));
 });
-define("ts/game/2048game", ["require", "exports", "ts/model/grid", "ts/render/gridview", "ts/game/gridcontrol", "ts/game/inputdirection", "ts/game/inputresult"], function (require, exports, grid_1, gridview_1, gridcontrol_1, inputdirection_1, inputresult_2) {
+define("ts/game/gamecontrol", ["require", "exports", "ts/game/inputdirection", "ts/game/inputresult"], function (require, exports, inputdirection_1, inputresult_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TwentyFourtyEightGame = void 0;
-    class TwentyFourtyEightGame {
-        constructor(element) {
-            const gridElement = document.createElement('div');
-            gridElement.classList.add('grid');
-            element.appendChild(gridElement);
-            const grid = new grid_1.Grid(4, 4);
-            this.gridControl = new gridcontrol_1.GridControl(grid);
-            this.gridView = new gridview_1.GridView(gridElement, grid);
-            this.setupInputHandlers();
-        }
-        setupInputHandlers() {
-            document.onkeydown = event => {
-                if (event.key === 'ArrowRight') {
-                    this.processInput(inputdirection_1.InputDirection.Right);
-                }
-                else if (event.key === 'ArrowUp') {
-                    this.processInput(inputdirection_1.InputDirection.Up);
-                }
-                else if (event.key === 'ArrowLeft') {
-                    this.processInput(inputdirection_1.InputDirection.Left);
-                }
-                else if (event.key === 'ArrowDown') {
-                    this.processInput(inputdirection_1.InputDirection.Down);
-                }
-            };
+    exports.GameControl = void 0;
+    class GameControl {
+        constructor(gridControl, gridView) {
+            this.gridControl = gridControl;
+            this.gridView = gridView;
         }
         processInput(direction) {
             let result = inputresult_2.InputResult.InvalidDirection;
@@ -468,6 +458,115 @@ define("ts/game/2048game", ["require", "exports", "ts/model/grid", "ts/render/gr
             return result;
         }
     }
+    exports.GameControl = GameControl;
+});
+define("ts/game/keylistener", ["require", "exports", "ts/game/inputdirection"], function (require, exports, inputdirection_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.KeyListener = void 0;
+    class KeyListener {
+        constructor(game) {
+            document.onkeydown = event => {
+                if (event.key === 'ArrowRight') {
+                    game.processInput(inputdirection_2.InputDirection.Right);
+                }
+                else if (event.key === 'ArrowUp') {
+                    game.processInput(inputdirection_2.InputDirection.Up);
+                }
+                else if (event.key === 'ArrowLeft') {
+                    game.processInput(inputdirection_2.InputDirection.Left);
+                }
+                else if (event.key === 'ArrowDown') {
+                    game.processInput(inputdirection_2.InputDirection.Down);
+                }
+            };
+        }
+    }
+    exports.KeyListener = KeyListener;
+});
+define("ts/game/touchlistener", ["require", "exports", "ts/game/inputdirection"], function (require, exports, inputdirection_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TouchListener = void 0;
+    class TouchListener {
+        constructor(game) {
+            this.game = game;
+            this.MINIMUM_SWIPE_THRESHOLD_SQUARED = 10 * 10;
+            this.touchStartX = 0;
+            this.touchStartY = 0;
+            this.touchEndX = 0;
+            this.touchEndY = 0;
+            document.addEventListener('touchstart', event => {
+                this.touchStartX = event.changedTouches[0].screenX;
+                this.touchStartY = event.changedTouches[0].screenY;
+            }, false);
+            document.addEventListener('touchend', event => {
+                this.touchEndX = event.changedTouches[0].screenX;
+                this.touchEndY = event.changedTouches[0].screenY;
+                this.handleGesture();
+            }, false);
+        }
+        handleGesture() {
+            const x1 = this.touchStartX;
+            const x2 = this.touchEndX;
+            const y1 = this.touchStartY;
+            const y2 = this.touchEndY;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const squareDistance = dx * dx + dy * dy;
+            if (squareDistance < this.MINIMUM_SWIPE_THRESHOLD_SQUARED) {
+                // Tap
+            }
+            else if (dx === 0) {
+                if (dy > 0) {
+                    this.game.processInput(inputdirection_3.InputDirection.Up);
+                }
+                else {
+                    this.game.processInput(inputdirection_3.InputDirection.Down);
+                }
+            }
+            else {
+                const slope = dy / dx;
+                if (slope > -1 && slope <= 1) {
+                    if (dx > 0) {
+                        this.game.processInput(inputdirection_3.InputDirection.Right);
+                    }
+                    else {
+                        this.game.processInput(inputdirection_3.InputDirection.Left);
+                    }
+                }
+                else {
+                    if (dy < 0) {
+                        this.game.processInput(inputdirection_3.InputDirection.Up);
+                    }
+                    else {
+                        this.game.processInput(inputdirection_3.InputDirection.Down);
+                    }
+                }
+            }
+        }
+    }
+    exports.TouchListener = TouchListener;
+});
+define("ts/game/2048game", ["require", "exports", "ts/model/grid", "ts/render/gridview", "ts/game/gamecontrol", "ts/game/gridcontrol", "ts/game/keylistener", "ts/game/touchlistener"], function (require, exports, grid_1, gridview_1, gamecontrol_1, gridcontrol_1, keylistener_1, touchlistener_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TwentyFourtyEightGame = void 0;
+    class TwentyFourtyEightGame {
+        constructor(element) {
+            const gridElement = document.createElement('div');
+            gridElement.classList.add('grid');
+            element.appendChild(gridElement);
+            /* eslint-disable no-unused-vars */
+            const grid = new grid_1.Grid(4, 4);
+            const gridControl = new gridcontrol_1.GridControl(grid);
+            const gridView = new gridview_1.GridView(gridElement, grid);
+            const gameControl = new gamecontrol_1.GameControl(gridControl, gridView);
+            const keyListener = new keylistener_1.KeyListener(gameControl);
+            const touchListener = new touchlistener_1.TouchListener(gameControl);
+            /* eslint-enable no-unused-vars */
+        }
+    }
     exports.TwentyFourtyEightGame = TwentyFourtyEightGame;
 });
 define("ts/index", ["require", "exports", "ts/game/2048game"], function (require, exports, _2048game_1) {
@@ -476,6 +575,7 @@ define("ts/index", ["require", "exports", "ts/game/2048game"], function (require
     window.addEventListener('load', () => {
         const body = document.querySelector('body');
         if (body) {
+            // eslint-disable-next-line no-unused-vars
             const game = new _2048game_1.TwentyFourtyEightGame(body);
         }
         else {

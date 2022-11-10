@@ -87,15 +87,40 @@ declare module "ts/game/inputdirection" {
         Down = 3
     }
 }
-declare module "ts/game/2048game" {
+declare module "ts/game/gamecontrol" {
+    import { GridView } from "ts/render/gridview";
+    import { GridControl } from "ts/game/gridcontrol";
     import { InputDirection } from "ts/game/inputdirection";
     import { InputResult } from "ts/game/inputresult";
-    export class TwentyFourtyEightGame {
-        private gridControl;
-        private gridView;
-        constructor(element: HTMLElement);
-        private setupInputHandlers;
+    export class GameControl {
+        private readonly gridControl;
+        private readonly gridView;
+        constructor(gridControl: GridControl, gridView: GridView);
         processInput(direction: InputDirection): InputResult;
+    }
+}
+declare module "ts/game/keylistener" {
+    import { GameControl } from "ts/game/gamecontrol";
+    export class KeyListener {
+        constructor(game: GameControl);
+    }
+}
+declare module "ts/game/touchlistener" {
+    import { GameControl } from "ts/game/gamecontrol";
+    export class TouchListener {
+        private readonly game;
+        private readonly MINIMUM_SWIPE_THRESHOLD_SQUARED;
+        private touchStartX;
+        private touchStartY;
+        private touchEndX;
+        private touchEndY;
+        constructor(game: GameControl);
+        private handleGesture;
+    }
+}
+declare module "ts/game/2048game" {
+    export class TwentyFourtyEightGame {
+        constructor(element: HTMLElement);
     }
 }
 declare module "ts/index" { }

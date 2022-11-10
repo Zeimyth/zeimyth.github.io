@@ -16,7 +16,53 @@
   color: white;
   display: flex;
   font-size: 24pt;
-  height: 64;
+  height: 96;
   justify-content: center;
-  width: 64;
+  width: 96;
+}
+.grid-cell.value-2 {
+  background-color: darkgreen;
+}
+.grid-cell.value-4 {
+  background-color: navy;
+  font-size: 26pt;
+}
+.grid-cell.value-8 {
+  background-color: darkorchid;
+  font-size: 26pt;
+}
+.grid-cell.value-16 {
+  background-color: darkred;
+  font-size: 27pt;
+}
+.grid-cell.value-32 {
+  background-color: darkorange;
+  font-size: 28pt;
+}
+.grid-cell.value-64 {
+  background-color: red;
+  font-size: 29pt;
+}
+.grid-cell.value-128 {
+  background-color: pink;
+  font-size: 30pt;
+}
+.grid-cell.value-256 {
+  background-color: lightblue;
+  font-size: 31pt;
+}
+.grid-cell.value-512 {
+  background-color: violet;
+  font-size: 32pt;
+  font-weight: bold;
+}
+.grid-cell.value-1024 {
+  background-color: lime;
+  font-size: 33pt;
+  font-weight: bold;
+}
+.grid-cell.value-2048 {
+  background-color: gold;
+  font-size: 34pt;
+  font-weight: bold;
 }
