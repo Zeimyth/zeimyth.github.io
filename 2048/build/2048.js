@@ -135,6 +135,31 @@ define("ts/render/gridview", ["require", "exports"], function (require, exports)
     }
     exports.GridView = GridView;
 });
+define("ts/render/notifier", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Notifier = void 0;
+    class Notifier {
+        constructor(gameDiv) {
+            this.gameDiv = gameDiv;
+            this.displayDiv = document.createElement('div');
+            this.displayDiv.classList.add('notification-display');
+            this.messageDiv = document.createElement('div');
+            this.messageDiv.classList.add('notification-message');
+            this.displayDiv.appendChild(this.messageDiv);
+            gameDiv.appendChild(this.displayDiv);
+        }
+        notifyDefeat() {
+            this.messageDiv.innerText = 'Game Over!';
+            this.displayDiv.classList.add('appear');
+        }
+        notifyVictory() {
+            this.messageDiv.innerText = 'Victory!';
+            this.displayDiv.classList.add('appear');
+        }
+    }
+    exports.Notifier = Notifier;
+});
 define("ts/game/inputresult", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -142,7 +167,9 @@ define("ts/game/inputresult", ["require", "exports"], function (require, exports
     var InputResult;
     (function (InputResult) {
         InputResult[InputResult["Continue"] = 0] = "Continue";
-        InputResult[InputResult["InvalidDirection"] = 1] = "InvalidDirection";
+        InputResult[InputResult["GameDefeat"] = 1] = "GameDefeat";
+        InputResult[InputResult["GameVictory"] = 2] = "GameVictory";
+        InputResult[InputResult["InvalidDirection"] = 3] = "InvalidDirection";
     })(InputResult = exports.InputResult || (exports.InputResult = {}));
 });
 define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/model/coordinate"], function (require, exports, inputresult_1, coordinate_1) {
@@ -174,7 +201,15 @@ define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/
                     this.shiftRowRight(y);
                 }
                 this.placeNewTile();
-                return inputresult_1.InputResult.Continue;
+                if (this.isVictory()) {
+                    return inputresult_1.InputResult.GameVictory;
+                }
+                else if (this.isDefeat()) {
+                    return inputresult_1.InputResult.GameDefeat;
+                }
+                else {
+                    return inputresult_1.InputResult.Continue;
+                }
             }
             else {
                 return inputresult_1.InputResult.InvalidDirection;
@@ -236,7 +271,15 @@ define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/
                     this.shiftColumnUp(x);
                 }
                 this.placeNewTile();
-                return inputresult_1.InputResult.Continue;
+                if (this.isVictory()) {
+                    return inputresult_1.InputResult.GameVictory;
+                }
+                else if (this.isDefeat()) {
+                    return inputresult_1.InputResult.GameDefeat;
+                }
+                else {
+                    return inputresult_1.InputResult.Continue;
+                }
             }
             else {
                 return inputresult_1.InputResult.InvalidDirection;
@@ -298,7 +341,15 @@ define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/
                     this.shiftRowLeft(y);
                 }
                 this.placeNewTile();
-                return inputresult_1.InputResult.Continue;
+                if (this.isVictory()) {
+                    return inputresult_1.InputResult.GameVictory;
+                }
+                else if (this.isDefeat()) {
+                    return inputresult_1.InputResult.GameDefeat;
+                }
+                else {
+                    return inputresult_1.InputResult.Continue;
+                }
             }
             else {
                 return inputresult_1.InputResult.InvalidDirection;
@@ -360,7 +411,15 @@ define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/
                     this.shiftColumnDown(x);
                 }
                 this.placeNewTile();
-                return inputresult_1.InputResult.Continue;
+                if (this.isVictory()) {
+                    return inputresult_1.InputResult.GameVictory;
+                }
+                else if (this.isDefeat()) {
+                    return inputresult_1.InputResult.GameDefeat;
+                }
+                else {
+                    return inputresult_1.InputResult.Continue;
+                }
             }
             else {
                 return inputresult_1.InputResult.InvalidDirection;
@@ -416,6 +475,29 @@ define("ts/game/gridcontrol", ["require", "exports", "ts/game/inputresult", "ts/
             this.grid.moveCellTo(coord, target);
             return null;
         }
+        isDefeat() {
+            for (let y = 0; y < this.grid.height; y++) {
+                for (let x = y; x < this.grid.width; x++) {
+                    if (this.grid.getCell({ x, y }) === 0) {
+                        return false;
+                    }
+                }
+            }
+            return !(this.canMoveRight() ||
+                this.canMoveUp() ||
+                this.canMoveLeft() ||
+                this.canMoveDown());
+        }
+        isVictory() {
+            for (let y = 0; y < this.grid.height; y++) {
+                for (let x = 0; x < this.grid.width; x++) {
+                    if (this.grid.getCell({ x, y }) === 2048) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
     exports.GridControl = GridControl;
 });
@@ -436,26 +518,37 @@ define("ts/game/gamecontrol", ["require", "exports", "ts/game/inputdirection", "
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GameControl = void 0;
     class GameControl {
-        constructor(gridControl, gridView) {
+        constructor(gridControl, gridView, notifier) {
             this.gridControl = gridControl;
             this.gridView = gridView;
+            this.notifier = notifier;
+            this.running = true;
         }
         processInput(direction) {
-            let result = inputresult_2.InputResult.InvalidDirection;
-            if (direction === inputdirection_1.InputDirection.Right) {
-                result = this.gridControl.moveRight();
+            if (this.running) {
+                let result = inputresult_2.InputResult.InvalidDirection;
+                if (direction === inputdirection_1.InputDirection.Right) {
+                    result = this.gridControl.moveRight();
+                }
+                else if (direction === inputdirection_1.InputDirection.Up) {
+                    result = this.gridControl.moveUp();
+                }
+                else if (direction === inputdirection_1.InputDirection.Left) {
+                    result = this.gridControl.moveLeft();
+                }
+                else if (direction === inputdirection_1.InputDirection.Down) {
+                    result = this.gridControl.moveDown();
+                }
+                this.gridView.update();
+                if (result === inputresult_2.InputResult.GameDefeat) {
+                    this.running = false;
+                    this.notifier.notifyDefeat();
+                }
+                else if (result === inputresult_2.InputResult.GameVictory) {
+                    this.running = false;
+                    this.notifier.notifyVictory();
+                }
             }
-            else if (direction === inputdirection_1.InputDirection.Up) {
-                result = this.gridControl.moveUp();
-            }
-            else if (direction === inputdirection_1.InputDirection.Left) {
-                result = this.gridControl.moveLeft();
-            }
-            else if (direction === inputdirection_1.InputDirection.Down) {
-                result = this.gridControl.moveDown();
-            }
-            this.gridView.update();
-            return result;
         }
     }
     exports.GameControl = GameControl;
@@ -548,7 +641,7 @@ define("ts/game/touchlistener", ["require", "exports", "ts/game/inputdirection"]
     }
     exports.TouchListener = TouchListener;
 });
-define("ts/game/2048game", ["require", "exports", "ts/model/grid", "ts/render/gridview", "ts/game/gamecontrol", "ts/game/gridcontrol", "ts/game/keylistener", "ts/game/touchlistener"], function (require, exports, grid_1, gridview_1, gamecontrol_1, gridcontrol_1, keylistener_1, touchlistener_1) {
+define("ts/game/2048game", ["require", "exports", "ts/model/grid", "ts/render/gridview", "ts/render/notifier", "ts/game/gamecontrol", "ts/game/gridcontrol", "ts/game/keylistener", "ts/game/touchlistener"], function (require, exports, grid_1, gridview_1, notifier_1, gamecontrol_1, gridcontrol_1, keylistener_1, touchlistener_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TwentyFourtyEightGame = void 0;
@@ -557,14 +650,13 @@ define("ts/game/2048game", ["require", "exports", "ts/model/grid", "ts/render/gr
             const gridElement = document.createElement('div');
             gridElement.classList.add('grid');
             element.appendChild(gridElement);
-            /* eslint-disable no-unused-vars */
             const grid = new grid_1.Grid(4, 4);
             const gridControl = new gridcontrol_1.GridControl(grid);
             const gridView = new gridview_1.GridView(gridElement, grid);
-            const gameControl = new gamecontrol_1.GameControl(gridControl, gridView);
+            const notifier = new notifier_1.Notifier(gridElement);
+            const gameControl = new gamecontrol_1.GameControl(gridControl, gridView, notifier);
             const keyListener = new keylistener_1.KeyListener(gameControl);
             const touchListener = new touchlistener_1.TouchListener(gameControl);
-            /* eslint-enable no-unused-vars */
         }
     }
     exports.TwentyFourtyEightGame = TwentyFourtyEightGame;
@@ -576,7 +668,6 @@ define("ts/index", ["require", "exports", "ts/game/2048game"], function (require
         const body = document.querySelector('body');
         if (body) {
             disableMobileScrolling(body);
-            // eslint-disable-next-line no-unused-vars
             const game = new _2048game_1.TwentyFourtyEightGame(body);
         }
         else {
@@ -585,7 +676,9 @@ define("ts/index", ["require", "exports", "ts/game/2048game"], function (require
     });
     // https://stackoverflow.com/a/49853392
     const disableMobileScrolling = (body) => {
-        body.addEventListener('touchmove', (event) => { event.preventDefault(); }, { passive: false });
+        body.addEventListener('touchmove', event => {
+            event.preventDefault();
+        }, { passive: false });
     };
 });
 //# sourceMappingURL=2048.js.map

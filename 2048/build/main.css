@@ -2,11 +2,13 @@ body {
   background-color: #fcfcfc;
 }
 .grid {
+  background-color: black;
   display: flex;
   flex-direction: column;
   height: 400px;
   justify-content: space-between;
   margin: 0 auto;
+  padding: 6px;
   width: 400px;
 }
 .grid-row {
@@ -68,4 +70,22 @@ body {
   background-color: gold;
   font-size: 34pt;
   font-weight: bold;
+}
+.notification-display {
+  background-color: rgba(0, 0, 0, 0.4);
+  display: none;
+  height: 400px;
+  position: absolute;
+  width: 400px;
+}
+.notification-display.appear {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+.notification-display .notification-message {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 36pt;
+  padding: 4px;
 }

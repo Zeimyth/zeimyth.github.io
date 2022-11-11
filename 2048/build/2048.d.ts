@@ -47,10 +47,22 @@ declare module "ts/render/gridview" {
         private getCellValue;
     }
 }
+declare module "ts/render/notifier" {
+    export class Notifier {
+        private readonly gameDiv;
+        private readonly displayDiv;
+        private readonly messageDiv;
+        constructor(gameDiv: HTMLElement);
+        notifyDefeat(): void;
+        notifyVictory(): void;
+    }
+}
 declare module "ts/game/inputresult" {
     export enum InputResult {
         Continue = 0,
-        InvalidDirection = 1
+        GameDefeat = 1,
+        GameVictory = 2,
+        InvalidDirection = 3
     }
 }
 declare module "ts/game/gridcontrol" {
@@ -77,6 +89,8 @@ declare module "ts/game/gridcontrol" {
         private canMoveDown;
         private shiftColumnDown;
         private shiftCellDown;
+        private isDefeat;
+        private isVictory;
     }
 }
 declare module "ts/game/inputdirection" {
@@ -89,14 +103,16 @@ declare module "ts/game/inputdirection" {
 }
 declare module "ts/game/gamecontrol" {
     import { GridView } from "ts/render/gridview";
+    import { Notifier } from "ts/render/notifier";
     import { GridControl } from "ts/game/gridcontrol";
     import { InputDirection } from "ts/game/inputdirection";
-    import { InputResult } from "ts/game/inputresult";
     export class GameControl {
         private readonly gridControl;
         private readonly gridView;
-        constructor(gridControl: GridControl, gridView: GridView);
-        processInput(direction: InputDirection): InputResult;
+        private readonly notifier;
+        private running;
+        constructor(gridControl: GridControl, gridView: GridView, notifier: Notifier);
+        processInput(direction: InputDirection): void;
     }
 }
 declare module "ts/game/keylistener" {
